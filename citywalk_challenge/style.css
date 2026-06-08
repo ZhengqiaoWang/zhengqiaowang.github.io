@@ -344,7 +344,7 @@ body {
 .share-image-wrap {
   display: flex;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   border-radius: 12px;
   overflow: hidden;
   background: #f5f5f5;
@@ -356,8 +356,12 @@ body {
   display: block;
 }
 
-.share-content .modal-confirm {
-  margin-top: 8px;
+.share-save-hint {
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+  margin-top: 4px;
+  line-height: 1.5;
 }
 
 /* ========== Leaflet 覆盖 ========== */

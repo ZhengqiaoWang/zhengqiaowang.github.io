@@ -39,7 +39,6 @@ var dom = {
   diceDirection: document.getElementById('diceDirection'),
   shareModal: document.getElementById('shareModal'),
   shareClose: document.getElementById('shareClose'),
-  shareDownload: document.getElementById('shareDownload'),
   shareCanvas: document.getElementById('shareCanvas'),
   recBadge: null,
   statsChip: null,
@@ -52,6 +51,8 @@ function init() {
     showToast('地图加载失败，请检查网络');
     return;
   }
+  console.log('[系统] 高德地图 API 加载成功，坐标系: GCJ-02');
+  console.log('[系统] 浏览器定位 API:', navigator.geolocation ? '可用' : '不可用');
   initMap();
   createOverlay();
   bindEvents();
@@ -87,18 +88,6 @@ function initMap() {
 
 // ========== 定位 ==========
 function startLocation() {
-  // 创建定位标记（DIV 类型，确保在最上层）
-  var markerContent = document.createElement('div');
-  markerContent.className = 'user-location-marker';
-  markerContent.style.cssText = 'width:16px;height:16px;background:#4096ff;border:2px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(0,0,0,0.4);transform:translate(-8px,-8px);';
-
-  state.userMarker = new AMap.Marker({
-    content: markerContent,
-    zIndex: 1001,
-  });
-  state.map.add(state.userMarker);
-  state.userMarker.hide();  // 初始隐藏，定位成功后显示
-
   // 高德高精度定位优先，失败后降级为 IP 定位
   useGaoDeHighAccuracyLocation(function(err) {
     console.warn('高德高精度定位失败，降级使用 IP 定位:', err);
@@ -119,6 +108,7 @@ function useGaoDeHighAccuracyLocation(failCb) {
     showCircle: false,
     panToLocation: false,
     zoomToAccuracy: false,
+    convert: false,  // 关闭坐标自动转换，因为我们处理的就是 GCJ-02
   });
   state.map.addControl(state.geolocation);
   bindGeolocationButton();
@@ -136,7 +126,7 @@ function useGaoDeHighAccuracyLocation(failCb) {
 
 // 高德 IP 定位兜底（无需权限，返回 GCJ-02）
 function useGaoDeIpLocation() {
-  console.log('使用高德 IP 定位兜底...');
+  console.log('使用高德 IP 定位兜底（精度通常较低）...');
   // 如果高德定位控件已创建，重新初始化一下（可能之前没创建）
   if (!state.geolocation) {
     state.geolocation = new AMap.Geolocation({
@@ -149,6 +139,7 @@ function useGaoDeIpLocation() {
       showCircle: false,
       panToLocation: false,
       zoomToAccuracy: false,
+      convert: false,
     });
     state.map.addControl(state.geolocation);
     bindGeolocationButton();
@@ -158,7 +149,7 @@ function useGaoDeIpLocation() {
     state.geolocation.getCurrentPosition(function(status, result) {
       if (status === 'complete') {
         onLocationSuccess(result);
-        showToast('IP 定位成功（精度较低）');
+        showToast('IP 定位成功（精度可能较低，建议使用 GPS 定位）');
       } else {
         console.error('高德 IP 定位也失败:', status, result);
         showToast('定位失败，请点击右下角定位按钮');
@@ -208,23 +199,32 @@ function onLocationSuccess(result) {
     return;
   }
 
+  // 记录定位来源和精度信息，方便排查偏移问题
+  var source = 'unknown';
+  if (result.source) source = result.source;
+  if (result.locationType !== undefined) source += '_type:' + result.locationType;
+  console.log('[定位] 来源:', source, 'GCJ-02:', lng, lat, '精度:', result.accuracy, '米');
+  console.log('[定位] 完整结果:', JSON.stringify({
+    lng: lng, lat: lat, accuracy: result.accuracy,
+    source: source,
+    formattedAddress: result.formattedAddress
+  }));
+
   state.currentPosition = {
     lng: lng,
     lat: lat,
     accuracy: result.accuracy || 0,
     timestamp: Date.now(),
   };
-  console.log('定位成功:', lng, lat, '精度:', result.accuracy, '米');
+  console.log('[定位成功] 更新 state.currentPosition:', lng, lat, '精度:', result.accuracy, '米');
   // 地图跳转到当前位置
   state.map.setCenter([lng, lat]);
-  // 显示定位标记并更新位置
-  setTimeout(function() {
-    if (state.userMarker) {
-      state.userMarker.setPosition([lng, lat]);
-      state.userMarker.show();
-    }
-    console.log('定位标记已显示:', [lng, lat]);
-  }, 300);
+  // 显示定位标记并更新位置（立即执行，不再延迟）
+  if (state.userMarker) {
+    state.userMarker.setPosition([lng, lat]);
+    state.userMarker.show();
+    console.log('[定位标记] 已显示在:', lng, lat);
+  }
 }
 
 function showDefaultMarker(lnglat) {
@@ -360,21 +360,36 @@ function startAutoTrack() {
 
 function doAutoTrackLocation() {
   if (!state.isRecording || state.isPaused || !state.geolocation) return;
-  
+
   state.geolocation.getCurrentPosition(function(status, result) {
     if (!state.isRecording || state.isPaused) return;
-    if (status !== 'complete') return;  // 定位失败就跳过
-    
+    if (status !== 'complete') {
+      console.warn('[自动定位] 失败:', status, result);
+      return;
+    }
+
     var lng = result.position.lng;
     var lat = result.position.lat;
     var accuracy = result.accuracy || 999;
 
-    // 精度太差就忽略（> 50 米）
-    if (accuracy > 50) return;
+    console.log('[自动定位] GCJ-02:', lng, lat, '精度:', accuracy, '米, source:', result.source);
+
+    // 精度过滤：首次记录放宽到 500 米（IP 定位精度），后续记录 200 米
+    // 如果轨迹已有至少 1 个点，说明之前已经拿到过可用定位，后续应该用更严的标准
+    var isFirstPoint = state.trajectory.length === 0;
+    if (!isFirstPoint && accuracy > 200) {
+      console.log('[自动定位] 精度不足，跳过记录');
+      return;
+    }
+    if (isFirstPoint && accuracy > 500) {
+      console.log('[自动定位] 首次精度不足，跳过记录');
+      return;
+    }
 
     // 如果轨迹为空或上一个点距离太远，记录新点
     if (state.trajectory.length === 0) {
       addPoint(lng, lat);
+      console.log('[自动定位] 记录第 1 个轨迹点');
     } else {
       var last = state.trajectory[state.trajectory.length - 1];
       var dist = haversine(last.lat, last.lng, lat, lng);
@@ -383,6 +398,7 @@ function doAutoTrackLocation() {
       var timeDiff = Date.now() - last.timestamp;
       if (dist >= 15 || (dist < 0.5 && timeDiff > 30000)) {
         addPoint(lng, lat);
+        console.log('[自动定位] 移动了', dist.toFixed(1), '米，记录新点');
       }
     }
   });
@@ -854,8 +870,8 @@ function loadMapTiles(ctx, tx, ty, tw, th, bounds, callback) {
       var tileUrl = 'https://webrd0' + (t.col % 4) + '.is.autonavi.com/appmaptile?x=' + t.col + '&y=' + t.row + '&z=' + zoom + '&lang=zh_cn&size=1&scl=1&style=8';
 
       // 预计算位置
-      var lon = tileToLon(t.col, t.row, zoom);
-      var lat = tileToLat(t.row, t.col, zoom);
+      var lon = tileToLon(t.col, zoom);
+      var lat = tileToLat(t.row, zoom);
       var pos = lonLatToCanvas(lon, lat, bounds, tw, th, tx, ty);
 
       img.onload = function() {
@@ -919,7 +935,7 @@ function latToTile(lat, zoom) {
 function tileToLon(col, row, zoom) {
   return col / Math.pow(2, zoom) * 360 - 180;
 }
-function tileToLat(row, col, zoom) {
+function tileToLat(row, zoom) {
   var n = Math.PI - 2 * Math.PI * row / Math.pow(2, zoom);
   return Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))) * 180 / Math.PI;
 }
@@ -1147,7 +1163,6 @@ function bindEvents() {
 
   dom.shareClose.addEventListener('click', function() { dom.shareModal.classList.remove('show'); });
   dom.shareModal.querySelector('.modal-backdrop').addEventListener('click', function() { dom.shareModal.classList.remove('show'); });
-  dom.shareDownload.addEventListener('click', downloadShare);
 }
 
 // ========== 启动 ==========
