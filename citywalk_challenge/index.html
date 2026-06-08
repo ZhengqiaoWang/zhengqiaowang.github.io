@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>轨迹记录器</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- 地图区域 -->
+    <div class="map-area" id="mapArea">
+      <div id="map"></div>
+    </div>
+
+    <!-- 底部按钮区域 -->
+    <div class="bottom-bar">
+      <button class="bar-btn" id="recordBtn" title="开始录制">
+        <svg viewBox="0 0 24 24" width="32" height="32">
+          <circle cx="12" cy="12" r="8" fill="#ff4d4f"/>
+        </svg>
+        <span class="btn-label">录制</span>
+      </button>
+
+      <button class="bar-btn" id="diceBtn" title="掷骰子">
+        <svg viewBox="0 0 24 24" width="32" height="32">
+          <rect x="3" y="3" width="18" height="18" rx="3" fill="#667eea"/>
+          <circle cx="8.5" cy="8.5" r="1.5" fill="#fff"/>
+          <circle cx="15.5" cy="8.5" r="1.5" fill="#fff"/>
+          <circle cx="12" cy="12" r="1.5" fill="#fff"/>
+          <circle cx="8.5" cy="15.5" r="1.5" fill="#fff"/>
+          <circle cx="15.5" cy="15.5" r="1.5" fill="#fff"/>
+        </svg>
+        <span class="btn-label">掷骰子</span>
+      </button>
+
+      <button class="bar-btn" id="moreBtn" title="更多">
+        <svg viewBox="0 0 24 24" width="32" height="32">
+          <circle cx="12" cy="5" r="2" fill="#333"/>
+          <circle cx="12" cy="12" r="2" fill="#333"/>
+          <circle cx="12" cy="19" r="2" fill="#333"/>
+        </svg>
+        <span class="btn-label">更多</span>
+      </button>
+    </div>
+
+    <!-- 更多菜单 -->
+    <div class="more-menu" id="moreMenu">
+      <div class="menu-item" id="importBtn">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="#333" stroke-width="2"/>
+          <polyline points="14 2 14 8 20 8" fill="none" stroke="#333" stroke-width="2"/>
+          <line x1="12" y1="10" x2="12" y2="17" stroke="#333" stroke-width="2"/>
+          <polyline points="9 14 12 17 15 14" fill="none" stroke="#333" stroke-width="2"/>
+        </svg>
+        <span>导入轨迹</span>
+        <input type="file" id="importInput" accept=".json" style="display: none;">
+      </div>
+      <div class="menu-item" id="exportBtn">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="#333" stroke-width="2"/>
+          <polyline points="7 10 12 15 17 10" fill="none" stroke="#333" stroke-width="2"/>
+          <line x1="12" y1="15" x2="12" y2="3" stroke="#333" stroke-width="2"/>
+        </svg>
+        <span>导出轨迹</span>
+      </div>
+      <div class="menu-item" id="shareBtn">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <circle cx="18" cy="5" r="3" fill="none" stroke="#333" stroke-width="2"/>
+          <circle cx="6" cy="12" r="3" fill="none" stroke="#333" stroke-width="2"/>
+          <circle cx="18" cy="19" r="3" fill="none" stroke="#333" stroke-width="2"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" fill="none" stroke="#333" stroke-width="2"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" fill="none" stroke="#333" stroke-width="2"/>
+        </svg>
+        <span>分享轨迹</span>
+      </div>
+      <div class="menu-item" id="simBtn">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <polygon points="5,3 19,12 5,21" fill="none" stroke="#333" stroke-width="2"/>
+        </svg>
+        <span>模拟模式</span>
+      </div>
+    </div>
+
+    <!-- 骰子弹窗 -->
+    <div class="modal" id="diceModal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <div class="dice-emoji">🎲</div>
+        <div class="dice-direction" id="diceDirection">准备就绪</div>
+        <button class="modal-confirm" id="diceConfirm">确认</button>
+      </div>
+    </div>
+
+    <!-- 分享弹窗 -->
+    <div class="modal" id="shareModal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content share-content">
+        <div class="share-close" id="shareClose">&times;</div>
+        <h3>轨迹分享</h3>
+        <div class="share-image-wrap">
+          <canvas id="shareCanvas"></canvas>
+        </div>
+        <button class="modal-confirm" id="shareDownload">保存图片</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 高德地图安全密钥（生产环境必须配置，本地开发可暂时注释） -->
+  <!--
+  <script>
+    window._AMapSecurityConfig = {
+      securityJsCode: 'fe24904399016ca077f5314a90d528a4',
+    };
+  </script>
+  -->
+  <script src="https://webapi.amap.com/maps?v=2.0&key=b7eb76f7d4d29e6979387be9a75677fa&plugin=AMap.Geolocation"></script>
+  <script src="app.js"></script>
+</body>
+</html>
