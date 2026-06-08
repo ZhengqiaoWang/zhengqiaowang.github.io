@@ -223,8 +223,22 @@ body {
   background: #f5f5f5;
 }
 
+.menu-cancel {
+  border-top: 1px solid #eee;
+  color: #666;
+}
+
+.menu-cancel:active {
+  background: #f0f0f0;
+  color: #333;
+}
+
 .menu-item svg {
   flex-shrink: 0;
+}
+
+.menu-backdrop {
+  display: none;
 }
 
 /* ========== 弹窗 ========== */
@@ -313,21 +327,20 @@ body {
 }
 
 /* ========== 分享弹窗 ========== */
-.share-content {
+.modal-content.share-content {
   width: 90%;
-  max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 420px;
+  padding: 24px 20px;
 }
 
-.share-content h3 {
+.modal-content.share-content h3 {
   text-align: center;
-  margin-bottom: 16px;
+  margin: 0 0 12px 0;
   font-size: 18px;
   color: #333;
 }
 
-.share-close {
+.modal-content.share-content .share-close {
   position: absolute;
   top: 12px;
   right: 16px;
@@ -337,11 +350,11 @@ body {
   line-height: 1;
 }
 
-.share-close:active {
+.modal-content.share-content .share-close:active {
   color: #333;
 }
 
-.share-image-wrap {
+.modal-content.share-content .share-image-wrap {
   display: flex;
   justify-content: center;
   margin-bottom: 12px;
@@ -350,17 +363,18 @@ body {
   background: #f5f5f5;
 }
 
-#shareCanvas {
-  max-width: 100%;
+.modal-content.share-content #shareCanvas {
+  width: 100%;
   height: auto;
   display: block;
 }
 
-.share-save-hint {
+.modal-content.share-content .share-save-hint {
   text-align: center;
   color: #999;
   font-size: 13px;
   margin-top: 4px;
+  margin-bottom: 8px;
   line-height: 1.5;
 }
 

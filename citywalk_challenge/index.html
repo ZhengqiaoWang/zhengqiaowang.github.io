@@ -46,7 +46,9 @@
 
     <!-- 更多菜单 -->
     <div class="more-menu" id="moreMenu">
-      <div class="menu-item" id="importBtn">
+      <div class="menu-backdrop"></div>
+      <div class="menu-items">
+        <div class="menu-item" id="importBtn">
         <svg viewBox="0 0 24 24" width="20" height="20">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="#333" stroke-width="2"/>
           <polyline points="14 2 14 8 20 8" fill="none" stroke="#333" stroke-width="2"/>
@@ -80,29 +82,33 @@
         </svg>
         <span>模拟模式</span>
       </div>
-    </div>
-
-    <!-- 骰子弹窗 -->
-    <div class="modal" id="diceModal">
-      <div class="modal-backdrop"></div>
-      <div class="modal-content">
-        <div class="dice-emoji">🎲</div>
-        <div class="dice-direction" id="diceDirection">准备就绪</div>
-        <button class="modal-confirm" id="diceConfirm">确认</button>
+      <div class="menu-item menu-cancel" id="menuCancel">
+        <span>取消</span>
       </div>
     </div>
 
-    <!-- 分享弹窗 -->
-    <div class="modal" id="shareModal">
-      <div class="modal-backdrop"></div>
-      <div class="modal-content share-content">
-        <div class="share-close" id="shareClose">&times;</div>
-        <h3>轨迹分享</h3>
-        <div class="share-image-wrap">
-          <canvas id="shareCanvas"></canvas>
-        </div>
-        <div class="share-save-hint" id="shareSaveHint">手机端长按图片保存，电脑端鼠标右键另存为图片</div>
+  </div>
+
+  <!-- 骰子弹窗 -->
+  <div class="modal" id="diceModal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="dice-emoji">🎲</div>
+      <div class="dice-direction" id="diceDirection">准备就绪</div>
+      <button class="modal-confirm" id="diceConfirm">确认</button>
+    </div>
+  </div>
+
+  <!-- 分享弹窗 -->
+  <div class="modal" id="shareModal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content share-content">
+      <div class="share-close" id="shareClose">&times;</div>
+      <h3>轨迹分享</h3>
+      <div class="share-image-wrap">
+        <canvas id="shareCanvas"></canvas>
       </div>
+      <div class="share-save-hint" id="shareSaveHint">手机端长按图片保存，电脑端鼠标右键另存为图片</div>
     </div>
   </div>
 

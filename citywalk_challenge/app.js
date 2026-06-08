@@ -1233,6 +1233,7 @@ function bindEvents() {
   dom.exportBtn.addEventListener('click', function(e) { e.stopPropagation(); doExport(); });
   dom.shareBtn.addEventListener('click', function(e) { e.stopPropagation(); doShare(); });
   dom.simBtn.addEventListener('click', function(e) { e.stopPropagation(); toggleSimulation(); });
+  dom.moreMenu.querySelector('#menuCancel').addEventListener('click', function(e) { e.stopPropagation(); closeMore(); });
 
   dom.shareClose.addEventListener('click', function() { dom.shareModal.classList.remove('show'); });
   dom.shareModal.querySelector('.modal-backdrop').addEventListener('click', function() { dom.shareModal.classList.remove('show'); });
