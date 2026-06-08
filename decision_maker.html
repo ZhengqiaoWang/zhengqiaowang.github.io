@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>随机选择器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --radius: 12px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: var(--spacing-lg);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: var(--spacing-xl);
+            max-width: 500px;
+            width: 100%;
+            max-height: calc(100dvh - var(--spacing-lg) * 2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: var(--spacing-lg);
+            font-size: clamp(20px, 5vw, 28px);
+            flex-shrink: 0;
+        }
+
+        .input-section {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            flex-shrink: 0;
+        }
+
+        .input-section input {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius);
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-section input:focus {
+            border-color: var(--primary);
+        }
+
+        .input-section button {
+            padding: 10px 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .input-section button:hover {
+            background: #5568d3;
+        }
+
+        .list-section {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: var(--spacing-md);
+            min-height: 0;
+        }
+
+        .option-count {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .options-list {
+            list-style: none;
+        }
+
+        .options-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px var(--spacing-md);
+            background: #f5f5f5;
+            border-radius: var(--radius);
+            margin-bottom: var(--spacing-sm);
+            transition: background 0.3s;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .options-list li:hover {
+            background: #eaeaea;
+        }
+
+        .options-list li span {
+            flex: 1;
+            min-width: 0;
+            color: #333;
+            font-size: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: var(--spacing-sm);
+        }
+
+        .options-list li button {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.3s;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .options-list li button:hover {
+            color: #e74c3c;
+        }
+
+        .action-section {
+            flex-shrink: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .action-buttons button {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+
+        .action-buttons button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-buttons button:active {
+            transform: translateY(0);
+        }
+
+        .random-btn {
+            background: var(--bg-gradient);
+            color: white;
+        }
+
+        .clear-btn {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .result-wrapper {
+            min-height: 80px;
+        }
+
+        .result {
+            padding: var(--spacing-md);
+            border-radius: var(--radius);
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.3s, transform 0.3s, background 0.3s, box-shadow 0.3s;
+            word-break: break-word;
+        }
+
+        .result.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .result-label {
+            font-size: clamp(12px, 3vw, 14px);
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        .result-value {
+            font-size: clamp(24px, 6vw, 36px);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        /* 滚动中状态 */
+        .result.rolling {
+            background: linear-gradient(135deg, #a8b8e8 0%, #b898d8 100%);
+        }
+
+        .result.rolling .result-value {
+            font-size: clamp(18px, 4vw, 24px);
+            animation: pulse 0.15s ease infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.7; }
+            to { opacity: 1; }
+        }
+
+        /* 选择结果状态 */
+        .result.winner {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
+            animation: celebrate 0.5s ease;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .empty-tip {
+            text-align: center;
+            color: #999;
+            padding: var(--spacing-lg);
+            font-size: 14px;
+        }
+
+        /* 小屏幕适配 */
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+                align-items: stretch;
+            }
+
+            .container {
+                padding: var(--spacing-lg);
+                max-height: 100dvh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            h1 {
+                margin-bottom: var(--spacing-md);
+            }
+
+            .input-section input {
+                padding: 12px 14px;
+            }
+
+            .input-section button {
+                padding: 12px 16px;
+            }
+
+            .options-list li {
+                padding: 12px var(--spacing-md);
+            }
+
+            .options-list li span {
+                font-size: 16px;
+            }
+
+            .action-buttons button {
+                padding: 14px 16px;
+            }
+        }
+
+        /* 超小屏幕适配（iPhone SE 第一代等） */
+        @media (max-width: 360px) and (max-height: 640px) {
+            body {
+                padding: 0;
+            }
+
+            .container {
+                padding: 16px;
+                border-radius: 0;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 12px;
+            }
+
+            .input-section {
+                margin-bottom: 12px;
+            }
+
+            .input-section input {
+                padding: 10px 12px;
+                font-size: 16px;
+            }
+
+            .input-section button {
+                padding: 10px 14px;
+                font-size: 15px;
+            }
+
+            .options-list li {
+                padding: 10px 12px;
+                margin-bottom: 6px;
+            }
+
+            .options-list li span {
+                font-size: 15px;
+            }
+
+            .action-buttons {
+                margin-bottom: 12px;
+            }
+
+            .action-buttons button {
+                padding: 12px 14px;
+                font-size: 15px;
+            }
+
+            .result {
+                min-height: 50px;
+                padding: 12px;
+            }
+        }
+
+        /* 防止 iOS 缩放 */
+        @media screen and (max-device-width: 480px) {
+            .input-section input,
+            .action-buttons button,
+            .input-section button {
+                font-size: 16px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 随机选择器</h1>
+
+        <div class="input-section">
+            <input type="text" id="optionInput" placeholder="输入选项后点击添加" autocomplete="off">
+            <button onclick="addOption()">添加</button>
+        </div>
+
+        <div class="list-section">
+            <div class="option-count" id="optionCount"></div>
+            <ul class="options-list" id="optionsList">
+                <li class="empty-tip" id="emptyTip">还没有添加任何选项</li>
+            </ul>
+        </div>
+
+        <div class="action-section">
+            <div class="action-buttons">
+                <button class="random-btn" onclick="randomSelect()">🎯 随机选择</button>
+                <button class="clear-btn" onclick="clearAll()">清空</button>
+            </div>
+
+            <div class="result-wrapper">
+                <div class="result" id="result">
+                    <span class="result-label" id="resultLabel"></span>
+                    <span class="result-value" id="resultValue"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let options = [];
+        let isRolling = false;
+
+        const optionInput = document.getElementById('optionInput');
+        const optionsList = document.getElementById('optionsList');
+        const optionCount = document.getElementById('optionCount');
+        const result = document.getElementById('result');
+        const resultLabel = document.getElementById('resultLabel');
+        const resultValue = document.getElementById('resultValue');
+
+        // 回车键添加选项
+        optionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addOption();
+            }
+        });
+
+        function addOption() {
+            if (isRolling) return;
+            const value = optionInput.value.trim();
+            if (!value) return;
+
+            options.push(value);
+            optionInput.value = '';
+            optionInput.focus();
+            renderOptions();
+        }
+
+        function removeOption(index) {
+            if (isRolling) return;
+            options.splice(index, 1);
+            renderOptions();
+            resetResult();
+        }
+
+        function clearAll() {
+            if (isRolling) return;
+            options = [];
+            renderOptions();
+            resetResult();
+        }
+
+        function resetResult() {
+            result.classList.remove('show', 'rolling', 'winner');
+            resultLabel.textContent = '';
+            resultValue.textContent = '';
+        }
+
+        function renderOptions() {
+            if (options.length === 0) {
+                optionsList.innerHTML = '<li class="empty-tip">还没有添加任何选项</li>';
+                optionCount.textContent = '';
+                return;
+            }
+
+            optionCount.textContent = `共 ${options.length} 个选项`;
+            optionsList.innerHTML = options.map((opt, index) => `
+                <li>
+                    <span>${escapeHtml(opt)}</span>
+                    <button onclick="removeOption(${index})" title="删除">×</button>
+                </li>
+            `).join('');
+        }
+
+        function randomSelect() {
+            if (isRolling) return;
+            if (options.length < 2) {
+                resultLabel.textContent = '';
+                resultValue.textContent = '请至少添加 2 个选项';
+                result.classList.add('show', 'winner');
+                return;
+            }
+
+            isRolling = true;
+            // 禁用按钮
+            document.querySelector('.random-btn').disabled = true;
+            document.querySelector('.clear-btn').disabled = true;
+
+            // 清除之前的状态
+            result.classList.remove('winner');
+            result.classList.add('show', 'rolling');
+            resultLabel.textContent = '🎰 正在选择...';
+
+            let count = 0;
+            const totalRolls = 20 + Math.floor(Math.random() * 15); // 20-35次滚动
+            const baseSpeed = 60;
+            let speed = baseSpeed;
+
+            function roll() {
+                resultValue.textContent = options[Math.floor(Math.random() * options.length)];
+                count++;
+
+                if (count >= totalRolls) {
+                    // 结束滚动，显示结果
+                    clearInterval(rollInterval);
+                    const finalIndex = Math.floor(Math.random() * options.length);
+                    resultValue.textContent = options[finalIndex];
+                    
+                    // 切换到结果状态
+                    result.classList.remove('rolling');
+                    result.classList.add('winner');
+                    resultLabel.textContent = '🎉 结果是';
+
+                    // 恢复按钮
+                    document.querySelector('.random-btn').disabled = false;
+                    document.querySelector('.clear-btn').disabled = false;
+                    isRolling = false;
+                    return;
+                }
+
+                // 逐渐减速
+                if (count > totalRolls * 0.6) {
+                    speed += 20;
+                }
+                if (count > totalRolls * 0.8) {
+                    speed += 30;
+                }
+
+                rollInterval = setTimeout(roll, speed);
+            }
+
+            let rollInterval;
+            roll();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
