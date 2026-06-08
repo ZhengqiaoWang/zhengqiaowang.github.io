@@ -52,7 +52,7 @@ function init() {
     return;
   }
   console.log('[系统] 高德地图 API 加载成功，坐标系: GCJ-02');
-  console.log('[系统] 浏览器定位 API:', navigator.geolocation ? '可用' : '不可用');
+  console.log('[系统] 定位方案: 浏览器GPS(WGS-84) → wgs84ToGcj02() → GCJ-02');
   initMap();
   createOverlay();
   bindEvents();
@@ -87,12 +87,70 @@ function initMap() {
 }
 
 // ========== 定位 ==========
+// 修复：高德 Geolocation 实际返回的是 WGS-84 坐标（未做 GCJ-02 转换）
+// 因此统一使用浏览器原生定位 + wgs84ToGcj02 转换
 function startLocation() {
-  // 高德高精度定位优先，失败后降级为 IP 定位
-  useGaoDeHighAccuracyLocation(function(err) {
-    console.warn('高德高精度定位失败，降级使用 IP 定位:', err);
-    useGaoDeIpLocation();
+  useBrowserGeolocation(function(wgs84Result) {
+    if (wgs84Result) {
+      console.log('[定位] 使用浏览器GPS (WGS-84 → GCJ-02)');
+    } else {
+      console.warn('[定位] 浏览器GPS不可用，尝试高德定位兜底...');
+      useGaoDeHighAccuracyLocation(function(err) {
+        console.warn('高德定位也失败:', err);
+        showToast('定位不可用，请检查权限');
+      });
+    }
   });
+}
+
+// 浏览器原生定位（返回 WGS-84 坐标），统一使用此方案
+function useBrowserGeolocation(successCb) {
+  if (!navigator.geolocation) {
+    console.warn('[浏览器定位] 不可用');
+    if (successCb) successCb(null);
+    return;
+  }
+
+  console.log('[浏览器定位] 请求 WGS-84 坐标...');
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      var wgs84 = {
+        lng: position.coords.longitude,
+        lat: position.coords.latitude,
+        accuracy: position.coords.accuracy,
+        timestamp: Date.now(),
+      };
+
+      // 转换为 GCJ-02（高德地图坐标系）
+      var gcj02 = wgs84ToGcj02(wgs84.lng, wgs84.lat);
+      console.log('[定位成功] WGS-84 → GCJ-02:', gcj02.lng, gcj02.lat, '精度:', wgs84.accuracy, '米');
+
+      state.currentPosition = {
+        lng: gcj02.lng,
+        lat: gcj02.lat,
+        accuracy: wgs84.accuracy,
+        timestamp: wgs84.timestamp,
+        source: 'browser_gps_gcj02',
+      };
+
+      // 地图跳转到当前位置
+      state.map.setCenter([gcj02.lng, gcj02.lat]);
+
+      // 显示定位标记
+      if (state.userMarker) {
+        state.userMarker.setPosition([gcj02.lng, gcj02.lat]);
+        state.userMarker.show();
+        console.log('[定位标记] 已显示在:', gcj02.lng, gcj02.lat);
+      }
+
+      if (successCb) successCb(wgs84);
+    },
+    function(err) {
+      console.warn('[浏览器定位] 失败:', err.message);
+      if (successCb) successCb(null);
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
 }
 
 // 高德高精度定位（GPS/基站/WiFi 混合，返回 GCJ-02）
@@ -116,7 +174,8 @@ function useGaoDeHighAccuracyLocation(failCb) {
   setTimeout(function() {
     state.geolocation.getCurrentPosition(function(status, result) {
       if (status === 'complete') {
-        onLocationSuccess(result);
+        // 高德定位兜底：直接使用返回的坐标
+        handleLocationResult(result);
       } else {
         if (failCb) failCb(status + ': ' + (result.message || ''));
       }
@@ -148,7 +207,8 @@ function useGaoDeIpLocation() {
   setTimeout(function() {
     state.geolocation.getCurrentPosition(function(status, result) {
       if (status === 'complete') {
-        onLocationSuccess(result);
+        // 高德定位兜底：直接使用返回的坐标
+        handleLocationResult(result);
         showToast('IP 定位成功（精度可能较低，建议使用 GPS 定位）');
       } else {
         console.error('高德 IP 定位也失败:', status, result);
@@ -184,8 +244,8 @@ function bindGeolocationButton() {
   observer.observe(state.map.getContainer(), { childList: true, subtree: true });
 }
 
-function onLocationSuccess(result) {
-  // 高德 2.0 API 兼容：result.position 或 result.lng/lat
+// 处理高德定位兜底结果（高德返回的坐标可能是 WGS-84，需要转换）
+function handleLocationResult(result) {
   var lng, lat;
   if (result.position) {
     lng = result.position.lng;
@@ -199,31 +259,22 @@ function onLocationSuccess(result) {
     return;
   }
 
-  // 记录定位来源和精度信息，方便排查偏移问题
-  var source = 'unknown';
-  if (result.source) source = result.source;
-  if (result.locationType !== undefined) source += '_type:' + result.locationType;
-  console.log('[定位] 来源:', source, 'GCJ-02:', lng, lat, '精度:', result.accuracy, '米');
-  console.log('[定位] 完整结果:', JSON.stringify({
-    lng: lng, lat: lat, accuracy: result.accuracy,
-    source: source,
-    formattedAddress: result.formattedAddress
-  }));
+  // 高德 Geolocation 实际返回的是 WGS-84，需要转换到 GCJ-02
+  var gcj02 = wgs84ToGcj02(lng, lat);
+  console.log('[高德兜底定位] 原始:', lng, lat, '→ GCJ-02:', gcj02.lng, gcj02.lat);
 
   state.currentPosition = {
-    lng: lng,
-    lat: lat,
+    lng: gcj02.lng,
+    lat: gcj02.lat,
     accuracy: result.accuracy || 0,
     timestamp: Date.now(),
+    source: 'gaode_wgs84_converted',
   };
-  console.log('[定位成功] 更新 state.currentPosition:', lng, lat, '精度:', result.accuracy, '米');
-  // 地图跳转到当前位置
-  state.map.setCenter([lng, lat]);
-  // 显示定位标记并更新位置（立即执行，不再延迟）
+
+  state.map.setCenter([gcj02.lng, gcj02.lat]);
   if (state.userMarker) {
-    state.userMarker.setPosition([lng, lat]);
+    state.userMarker.setPosition([gcj02.lng, gcj02.lat]);
     state.userMarker.show();
-    console.log('[定位标记] 已显示在:', lng, lat);
   }
 }
 
@@ -359,49 +410,71 @@ function startAutoTrack() {
 }
 
 function doAutoTrackLocation() {
-  if (!state.isRecording || state.isPaused || !state.geolocation) return;
+  if (!state.isRecording || state.isPaused) return;
 
-  state.geolocation.getCurrentPosition(function(status, result) {
-    if (!state.isRecording || state.isPaused) return;
-    if (status !== 'complete') {
-      console.warn('[自动定位] 失败:', status, result);
-      return;
-    }
+  if (!navigator.geolocation) return;
 
-    var lng = result.position.lng;
-    var lat = result.position.lat;
-    var accuracy = result.accuracy || 999;
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      if (!state.isRecording || state.isPaused) return;
 
-    console.log('[自动定位] GCJ-02:', lng, lat, '精度:', accuracy, '米, source:', result.source);
+      var wgs84Lng = position.coords.longitude;
+      var wgs84Lat = position.coords.latitude;
+      var accuracy = position.coords.accuracy;
 
-    // 精度过滤：首次记录放宽到 500 米（IP 定位精度），后续记录 200 米
-    // 如果轨迹已有至少 1 个点，说明之前已经拿到过可用定位，后续应该用更严的标准
-    var isFirstPoint = state.trajectory.length === 0;
-    if (!isFirstPoint && accuracy > 200) {
-      console.log('[自动定位] 精度不足，跳过记录');
-      return;
-    }
-    if (isFirstPoint && accuracy > 500) {
-      console.log('[自动定位] 首次精度不足，跳过记录');
-      return;
-    }
+      // 转换为 GCJ-02
+      var gcj02 = wgs84ToGcj02(wgs84Lng, wgs84Lat);
+      var lng = gcj02.lng;
+      var lat = gcj02.lat;
 
-    // 如果轨迹为空或上一个点距离太远，记录新点
-    if (state.trajectory.length === 0) {
-      addPoint(lng, lat);
-      console.log('[自动定位] 记录第 1 个轨迹点');
-    } else {
-      var last = state.trajectory[state.trajectory.length - 1];
-      var dist = haversine(last.lat, last.lng, lat, lng);
-      // 至少移动 15 米才记录新点（避免静止时重复记录）
-      // 但如果用户走回头路，相同坐标超过 30 秒也会重新记录
-      var timeDiff = Date.now() - last.timestamp;
-      if (dist >= 15 || (dist < 0.5 && timeDiff > 30000)) {
-        addPoint(lng, lat);
-        console.log('[自动定位] 移动了', dist.toFixed(1), '米，记录新点');
+      console.log('[自动定位] WGS-84:', wgs84Lng, wgs84Lat, '→ GCJ-02:', lng, lat, '精度:', accuracy, '米');
+
+      // 精度过滤：首点放宽到 500 米，后续记录 200 米
+      var isFirstPoint = state.trajectory.length === 0;
+      if (!isFirstPoint && accuracy > 200) {
+        console.log('[自动定位] 精度不足，跳过记录');
+        return;
       }
-    }
-  });
+      if (isFirstPoint && accuracy > 500) {
+        console.log('[自动定位] 首次精度不足，跳过记录');
+        return;
+      }
+
+      // 更新当前位置
+      state.currentPosition = {
+        lng: lng,
+        lat: lat,
+        accuracy: accuracy,
+        timestamp: Date.now(),
+        source: 'browser_gps_gcj02',
+      };
+
+      // 更新地图上的用户位置标记
+      if (state.userMarker) {
+        state.userMarker.setPosition([lng, lat]);
+      }
+
+      // 如果轨迹为空，记录第一个点
+      if (state.trajectory.length === 0) {
+        addPoint(lng, lat);
+        console.log('[自动定位] 记录第 1 个轨迹点');
+      } else {
+        var last = state.trajectory[state.trajectory.length - 1];
+        var dist = haversine(last.lat, last.lng, lat, lng);
+        // 至少移动 15 米才记录新点（避免静止时重复记录）
+        // 但如果用户走回头路，相同坐标超过 30 秒也会重新记录
+        var timeDiff = Date.now() - last.timestamp;
+        if (dist >= 15 || (dist < 0.5 && timeDiff > 30000)) {
+          addPoint(lng, lat);
+          console.log('[自动定位] 移动了', dist.toFixed(1), '米，记录新点');
+        }
+      }
+    },
+    function(err) {
+      console.warn('[自动定位] 失败:', err.message);
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+  );
 }
 
 function addPoint(lng, lat) {
