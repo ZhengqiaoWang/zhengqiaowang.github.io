@@ -66,6 +66,54 @@
             flex-shrink: 0;
         }
 
+        /* 预设模板区域 */
+        .templates-section {
+            margin-bottom: var(--spacing-md);
+            flex-shrink: 0;
+        }
+
+        .templates-label {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: var(--spacing-sm);
+            text-align: center;
+        }
+
+        .templates-grid {
+            display: flex;
+            gap: var(--spacing-sm);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .template-btn {
+            padding: 8px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius);
+            background: white;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .template-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #f5f3ff;
+        }
+
+        .template-btn:active {
+            transform: scale(0.95);
+        }
+
+        .template-btn.active {
+            border-color: var(--primary);
+            background: var(--bg-gradient);
+            color: white;
+        }
+
         .input-section input {
             flex: 1;
             min-width: 0;
@@ -214,6 +262,43 @@
             min-height: 80px;
         }
 
+        /* 触发次数统计 */
+        .stats-section {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-sm) 0;
+        }
+
+        .stats-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .stats-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: #f5f5f5;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stats-item .stat-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80px;
+        }
+
+        .stats-item .stat-count {
+            font-weight: 600;
+            color: #333;
+        }
+
         .result {
             padding: var(--spacing-md);
             border-radius: var(--radius);
@@ -300,6 +385,15 @@
 
             h1 {
                 margin-bottom: var(--spacing-md);
+            }
+
+            .templates-grid {
+                gap: 6px;
+            }
+
+            .template-btn {
+                padding: 6px 10px;
+                font-size: 13px;
             }
 
             .input-section input {
@@ -391,6 +485,16 @@
     <div class="container">
         <h1>🎲 随机选择器</h1>
 
+        <div class="templates-section">
+            <div class="templates-label">快速模板</div>
+            <div class="templates-grid">
+                <button class="template-btn" data-template="rock-paper-scissors">✊ 石头剪刀布</button>
+                <button class="template-btn" data-template="citywalk">🚶 CityWalk 随机挑战</button>
+                <button class="template-btn" data-template="yes-no">🪙 是/否</button>
+                <button class="template-btn" data-template="dice">🎲 1-6</button>
+            </div>
+        </div>
+
         <div class="input-section">
             <input type="text" id="optionInput" placeholder="输入选项后点击添加" autocomplete="off">
             <button onclick="addOption()">添加</button>
@@ -414,6 +518,9 @@
                     <span class="result-label" id="resultLabel"></span>
                     <span class="result-value" id="resultValue"></span>
                 </div>
+                <div class="stats-section">
+                    <ul class="stats-list" id="statsList"></ul>
+                </div>
             </div>
         </div>
     </div>
@@ -422,12 +529,75 @@
         let options = [];
         let isRolling = false;
 
+        // 预设模板
+        var templates = {
+            'rock-paper-scissors': {
+                label: '石头剪刀布',
+                options: ['石头', '剪刀', '布']
+            },
+            'citywalk': {
+                label: 'CityWalk 随机挑战',
+                options: ['前进', '左转', '右转']
+            },
+            'yes-no': {
+                label: '是/否',
+                options: ['是', '否']
+            },
+            'dice': {
+                label: '1-6',
+                options: ['1', '2', '3', '4', '5', '6']
+            }
+        };
+
         const optionInput = document.getElementById('optionInput');
         const optionsList = document.getElementById('optionsList');
         const optionCount = document.getElementById('optionCount');
         const result = document.getElementById('result');
         const resultLabel = document.getElementById('resultLabel');
         const resultValue = document.getElementById('resultValue');
+        const templateBtns = document.querySelectorAll('.template-btn');
+        const statsList = document.getElementById('statsList');
+
+        // 触发次数统计
+        var stats = {};
+
+        // 模板点击事件
+        templateBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (isRolling) return;
+                var templateKey = this.getAttribute('data-template');
+                applyTemplate(templateKey);
+            });
+        });
+
+        function applyTemplate(key) {
+            var template = templates[key];
+            if (!template) return;
+
+            options = template.options.slice();
+            // 重置统计数据
+            stats = {};
+            options.forEach(function(opt) { stats[opt] = 0; });
+            resetResult();
+            renderOptions();
+            renderStats();
+
+            // 更新按钮状态
+            templateBtns.forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-template') === key);
+            });
+        }
+
+        function renderStats() {
+            if (Object.keys(stats).length === 0) {
+                statsList.innerHTML = '';
+                return;
+            }
+            statsList.innerHTML = options.map(function(opt) {
+                var count = stats[opt] || 0;
+                return '<li class="stats-item"><span class="stat-label">' + escapeHtml(opt) + '</span><span class="stat-count">' + count + '</span></li>';
+            }).join('');
+        }
 
         // 回车键添加选项
         optionInput.addEventListener('keypress', function(e) {
@@ -442,23 +612,34 @@
             if (!value) return;
 
             options.push(value);
+            stats[value] = 0;
             optionInput.value = '';
             optionInput.focus();
             renderOptions();
+            renderStats();
         }
 
         function removeOption(index) {
             if (isRolling) return;
-            options.splice(index, 1);
+            var removed = options.splice(index, 1)[0];
+            delete stats[removed];
             renderOptions();
+            renderStats();
             resetResult();
         }
 
         function clearAll() {
             if (isRolling) return;
             options = [];
+            stats = {};
             renderOptions();
+            renderStats();
             resetResult();
+
+            // 清除模板选中状态
+            templateBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+            });
         }
 
         function resetResult() {
@@ -515,8 +696,15 @@
                     // 结束滚动，显示结果
                     clearInterval(rollInterval);
                     const finalIndex = Math.floor(Math.random() * options.length);
-                    resultValue.textContent = options[finalIndex];
-                    
+                    const chosen = options[finalIndex];
+                    resultValue.textContent = chosen;
+
+                    // 记录触发次数
+                    if (stats[chosen] !== undefined) {
+                        stats[chosen]++;
+                    }
+                    renderStats();
+
                     // 切换到结果状态
                     result.classList.remove('rolling');
                     result.classList.add('winner');
