@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>房贷提前还款减税计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #bbb;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            margin-top: 6px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 结果区域 */
+        .result-section {
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .summary-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+
+        .summary-item.highlight {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .summary-item .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .summary-item .value {
+            font-size: 17px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .summary-item .unit {
+            font-size: 12px;
+            color: #888;
+            font-weight: 400;
+        }
+
+        /* 表格 */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #e8e8e8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 600px;
+        }
+
+        thead {
+            background: #f5f5f5;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        th {
+            padding: 10px 6px;
+            text-align: right;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #ddd;
+            white-space: nowrap;
+        }
+
+        th:first-child {
+            text-align: center;
+        }
+
+        td {
+            padding: 9px 6px;
+            text-align: right;
+            border-bottom: 1px solid #f0f0f0;
+            color: #333;
+        }
+
+        td:first-child {
+            text-align: center;
+            color: #888;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        tbody tr.balance-point {
+            background: #d4edda !important;
+        }
+
+        tbody tr:hover {
+            background: #e8f4fd;
+        }
+
+        .note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>房贷提前还款减税计算器</h1>
+    </div>
+
+    <div class="container">
+        <!-- 表单 -->
+        <div class="card">
+            <div class="card-title">输入参数</div>
+            <div class="form-group">
+                <label for="loanAmount">贷款金额（元）</label>
+                <input type="number" id="loanAmount" value="420000" placeholder="请输入贷款金额">
+            </div>
+            <div class="form-group">
+                <label for="interestRate">贷款利率（%）</label>
+                <input type="number" id="interestRate" value="2.6" step="0.01" placeholder="请输入年利率">
+            </div>
+            <div class="form-group">
+                <label for="loanMonths">还款月数</label>
+                <input type="number" id="loanMonths" value="180" placeholder="请输入还款月数">
+            </div>
+            <div class="form-group">
+                <label for="repaymentType">还款方式</label>
+                <select id="repaymentType">
+                    <option value="equal-principal-interest">等额本息</option>
+                    <option value="equal-principal">等额本金</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="targetBalance">目标贷款余额（元）</label>
+                <input type="number" id="targetBalance" value="10000" placeholder="低于此值时停止计算">
+            </div>
+            <div class="form-group">
+                <label for="monthlyBudget">预计月还款预算（元）</label>
+                <input type="number" id="monthlyBudget" value="11000" placeholder="每月可用于还款的最大金额">
+            </div>
+            <div class="form-group">
+                <label for="annualIncome">预计年收入（元）</label>
+                <input type="number" id="annualIncome" value="360000" placeholder="用于计算税收减免">
+            </div>
+            <button class="btn" onclick="calculate()">开始计算</button>
+        </div>
+
+        <!-- 结果 -->
+        <div class="result-section" id="resultSection">
+            <div class="card">
+                <div class="card-title">计算结果</div>
+                <div class="summary-grid" id="summaryGrid"></div>
+                <div class="note">
+                    <span style="color:#28a745;">■</span> 绿色行 = 利息 ≤ 税收优惠（平衡点之后）
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">逐月明细</div>
+                <div class="table-wrapper">
+                    <table id="detailTable">
+                        <thead>
+                            <tr>
+                                <th>月份</th>
+                                <th>月供(元)</th>
+                                <th>本金(元)</th>
+                                <th>利息(元)</th>
+                                <th>税收优惠(元)</th>
+                                <th>提前还款(元)</th>
+                                <th>资金池(元)</th>
+                                <th>剩余本金(元)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateTaxDeduction(annualIncome) {
+            const taxThreshold = 60000;
+            const housingDeduction = 1000 * 12;
+
+            const taxableIncome = Math.max(0, annualIncome - taxThreshold - housingDeduction);
+
+            let annualTax = 0;
+            if (taxableIncome <= 36000) {
+                annualTax = taxableIncome * 0.03;
+            } else if (taxableIncome <= 144000) {
+                annualTax = 36000 * 0.03 + (taxableIncome - 36000) * 0.1;
+            } else if (taxableIncome <= 300000) {
+                annualTax = 36000 * 0.03 + 108000 * 0.1 + (taxableIncome - 144000) * 0.2;
+            } else if (taxableIncome <= 420000) {
+                annualTax = 36000 * 0.03 + 108000 * 0.1 + 156000 * 0.2 + (taxableIncome - 300000) * 0.25;
+            } else if (taxableIncome <= 660000) {
+                annualTax = 36000 * 0.03 + 108000 * 0.1 + 156000 * 0.2 + 120000 * 0.25 + (taxableIncome - 420000) * 0.3;
+            } else if (taxableIncome <= 960000) {
+                annualTax = 36000 * 0.03 + 108000 * 0.1 + 156000 * 0.2 + 120000 * 0.25 + 240000 * 0.3 + (taxableIncome - 660000) * 0.35;
+            } else {
+                annualTax = 36000 * 0.03 + 108000 * 0.1 + 156000 * 0.2 + 120000 * 0.25 + 240000 * 0.3 + 300000 * 0.35 + (taxableIncome - 960000) * 0.45;
+            }
+
+            const taxableIncomeWithoutDeduction = Math.max(0, annualIncome - taxThreshold);
+            let annualTaxWithoutDeduction = 0;
+            if (taxableIncomeWithoutDeduction <= 36000) {
+                annualTaxWithoutDeduction = taxableIncomeWithoutDeduction * 0.03;
+            } else if (taxableIncomeWithoutDeduction <= 144000) {
+                annualTaxWithoutDeduction = 36000 * 0.03 + (taxableIncomeWithoutDeduction - 36000) * 0.1;
+            } else if (taxableIncomeWithoutDeduction <= 300000) {
+                annualTaxWithoutDeduction = 36000 * 0.03 + 108000 * 0.1 + (taxableIncomeWithoutDeduction - 144000) * 0.2;
+            } else if (taxableIncomeWithoutDeduction <= 420000) {
+                annualTaxWithoutDeduction = 36000 * 0.03 + 108000 * 0.1 + 156000 * 0.2 + (taxableIncomeWithoutDeduction - 300000) * 0.25;
+            } else if (taxableIncomeWithoutDeduction <= 660000) {
+                annualTaxWithoutDeduction = 36000 * 0.03 + 108000 * 0.1 + 156000 * 0.2 + 120000 * 0.25 + (taxableIncomeWithoutDeduction - 420000) * 0.3;
+            } else if (taxableIncomeWithoutDeduction <= 960000) {
+                annualTaxWithoutDeduction = 36000 * 0.03 + 108000 * 0.1 + 156000 * 0.2 + 120000 * 0.25 + 240000 * 0.3 + (taxableIncomeWithoutDeduction - 660000) * 0.35;
+            } else {
+                annualTaxWithoutDeduction = 36000 * 0.03 + 108000 * 0.1 + 156000 * 0.2 + 120000 * 0.25 + 240000 * 0.3 + 300000 * 0.35 + (taxableIncomeWithoutDeduction - 960000) * 0.45;
+            }
+
+            const annualTaxBenefit = annualTaxWithoutDeduction - annualTax;
+            return annualTaxBenefit / 12;
+        }
+
+        function formatNumber(num) {
+            return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function calculate() {
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+            const interestRate = parseFloat(document.getElementById('interestRate').value) / 100 / 12;
+            const totalMonths = parseInt(document.getElementById('loanMonths').value);
+            const repaymentType = document.getElementById('repaymentType').value;
+            const targetBalance = parseFloat(document.getElementById('targetBalance').value);
+            const monthlyBudget = parseFloat(document.getElementById('monthlyBudget').value);
+            const annualIncome = parseFloat(document.getElementById('annualIncome').value);
+
+            if (isNaN(loanAmount) || isNaN(interestRate * 12) || isNaN(totalMonths)) {
+                alert('请输入有效的参数');
+                return;
+            }
+
+            const monthlyTaxDeduction = calculateTaxDeduction(annualIncome);
+
+            let remainingBalance = loanAmount;
+            let totalInterest = 0;
+            let totalPayment = 0;
+            let totalTaxBenefit = 0;
+            let prepaymentPool = 0;
+            let month = 0;
+            let prepaymentCount = 0;
+            const results = [];
+
+            // 第一阶段：正常还款 + 提前还款
+            while (remainingBalance > targetBalance && month < totalMonths) {
+                month++;
+                const remainingMonths = totalMonths - month + 1;
+
+                let monthlyPayment, principalPayment, interestPayment;
+                if (repaymentType === 'equal-principal-interest') {
+                    monthlyPayment = remainingBalance * interestRate * Math.pow(1 + interestRate, remainingMonths) /
+                        (Math.pow(1 + interestRate, remainingMonths) - 1);
+                    interestPayment = remainingBalance * interestRate;
+                    principalPayment = monthlyPayment - interestPayment;
+                } else {
+                    const monthlyPrincipal = remainingBalance / remainingMonths;
+                    interestPayment = remainingBalance * interestRate;
+                    principalPayment = monthlyPrincipal;
+                    monthlyPayment = principalPayment + interestPayment;
+                }
+
+                principalPayment = Math.min(principalPayment, remainingBalance);
+                monthlyPayment = principalPayment + interestPayment;
+
+                const actualPayment = Math.min(monthlyBudget, monthlyPayment);
+                prepaymentPool += (monthlyBudget - actualPayment);
+
+                totalInterest += interestPayment;
+                totalPayment += actualPayment;
+
+                const principalToSubtract = Math.min(principalPayment, remainingBalance - 0.01);
+                remainingBalance -= principalToSubtract;
+
+                let currentTaxDeduction = 0;
+                if (remainingBalance > 0) {
+                    currentTaxDeduction = monthlyTaxDeduction;
+                    totalTaxBenefit += monthlyTaxDeduction;
+                }
+
+                const monthData = {
+                    month: month,
+                    monthlyPayment: monthlyPayment,
+                    principal: principalToSubtract,
+                    interest: interestPayment,
+                    taxDeduction: currentTaxDeduction,
+                    prepayment: 0,
+                    prepaymentPool: prepaymentPool,
+                    remainingBalance: remainingBalance
+                };
+
+                // 提前还款检测
+                if (prepaymentPool >= 10000 && remainingBalance > 0.01) {
+                    const maxPrepayment = remainingBalance - 0.01;
+                    const prepaymentAmount = Math.min(Math.floor(prepaymentPool / 10000) * 10000, maxPrepayment);
+                    prepaymentPool -= prepaymentAmount;
+                    remainingBalance -= prepaymentAmount;
+                    prepaymentCount++;
+                    monthData.prepayment = prepaymentAmount;
+                    monthData.prepaymentPool = prepaymentPool;
+                    monthData.remainingBalance = remainingBalance;
+                }
+
+                results.push(monthData);
+            }
+
+            // 第二阶段：剩余月份继续还款
+            let remainingMonths = totalMonths - month;
+            if (remainingMonths > 0 && remainingBalance > 0) {
+                for (let i = 1; i <= remainingMonths && remainingBalance > 0.01; i++) {
+                    month++;
+                    const currentRemainingMonths = remainingMonths - i + 1;
+
+                    let monthlyPayment, principalPayment, interestPayment;
+                    if (repaymentType === 'equal-principal-interest') {
+                        monthlyPayment = remainingBalance * interestRate * Math.pow(1 + interestRate, currentRemainingMonths) /
+                            (Math.pow(1 + interestRate, currentRemainingMonths) - 1);
+                        interestPayment = remainingBalance * interestRate;
+                        principalPayment = monthlyPayment - interestPayment;
+                    } else {
+                        const monthlyPrincipal = remainingBalance / currentRemainingMonths;
+                        interestPayment = remainingBalance * interestRate;
+                        principalPayment = monthlyPrincipal;
+                        monthlyPayment = principalPayment + interestPayment;
+                    }
+
+                    principalPayment = Math.min(principalPayment, remainingBalance - 0.01);
+                    monthlyPayment = principalPayment + interestPayment;
+
+                    const actualPayment = Math.min(monthlyBudget, monthlyPayment);
+                    prepaymentPool += (monthlyBudget - actualPayment);
+
+                    totalInterest += interestPayment;
+                    totalPayment += actualPayment;
+                    remainingBalance -= principalPayment;
+
+                    let currentTaxDeduction = 0;
+                    if (remainingBalance > 0) {
+                        currentTaxDeduction = monthlyTaxDeduction;
+                        totalTaxBenefit += monthlyTaxDeduction;
+                    }
+
+                    results.push({
+                        month: month,
+                        monthlyPayment: monthlyPayment,
+                        principal: principalPayment,
+                        interest: interestPayment,
+                        taxDeduction: currentTaxDeduction,
+                        prepayment: 0,
+                        prepaymentPool: prepaymentPool,
+                        remainingBalance: remainingBalance
+                    });
+                }
+            }
+
+            // 找平衡点
+            const firstBalancePointMonth = results.find(item => item.interest <= item.taxDeduction && item.taxDeduction > 0);
+            const balancePointMonth = firstBalancePointMonth ? firstBalancePointMonth.month : null;
+
+            // 渲染汇总
+            const summaryData = [
+                { label: '总还款月数', value: month, unit: '个月' },
+                { label: '总还款金额', value: formatNumber(totalPayment), unit: '元' },
+                { label: '总利息支出', value: formatNumber(totalInterest), unit: '元' },
+                { label: '提前还款次数', value: prepaymentCount, unit: '次' },
+                { label: '每月税收减免', value: formatNumber(monthlyTaxDeduction), unit: '元' },
+                { label: '总税收收益', value: formatNumber(totalTaxBenefit), unit: '元' },
+                { label: '最终剩余本金', value: formatNumber(remainingBalance), unit: '元' },
+                { label: '平衡点月份', value: balancePointMonth ? '第' + balancePointMonth + '个月' : '无', unit: '' }
+            ];
+
+            const summaryGrid = document.getElementById('summaryGrid');
+            summaryGrid.innerHTML = summaryData.map(item => `
+                <div class="summary-item ${item.label === '平衡点月份' && item.value !== '无' ? 'highlight' : ''}">
+                    <div class="label">${item.label}</div>
+                    <div class="value">${item.value} <span class="unit">${item.unit}</span></div>
+                </div>
+            `).join('');
+
+            // 渲染表格
+            const detailBody = document.getElementById('detailBody');
+            detailBody.innerHTML = results.map(item => `
+                <tr class="${balancePointMonth && item.month >= balancePointMonth ? 'balance-point' : ''}">
+                    <td>${item.month}</td>
+                    <td>${formatNumber(item.monthlyPayment)}</td>
+                    <td>${formatNumber(item.principal)}</td>
+                    <td>${formatNumber(item.interest)}</td>
+                    <td>${formatNumber(item.taxDeduction)}</td>
+                    <td>${formatNumber(item.prepayment)}</td>
+                    <td>${formatNumber(item.prepaymentPool)}</td>
+                    <td>${formatNumber(item.remainingBalance)}</td>
+                </tr>
+            `).join('');
+
+            // 显示结果
+            document.getElementById('resultSection').classList.add('show');
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
