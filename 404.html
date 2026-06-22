@@ -73,7 +73,7 @@
         <div class="error-code">404</div>
         <p class="message">页面不存在</p>
         <p class="countdown"><span id="countdown">3</span> 秒后跳转至首页...</p>
-        <a href="index.html" class="home-link">立即返回</a>
+        <a href="/" class="home-link">立即返回</a>
     </div>
 
     <script>
@@ -86,7 +86,7 @@
             
             if (seconds <= 0) {
                 clearInterval(timer);
-                window.location.href = 'index.html';
+                window.location.replace('/');
             }
         }, 1000);
     </script>
