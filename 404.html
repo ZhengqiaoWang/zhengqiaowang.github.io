@@ -49,46 +49,15 @@
             line-height: 1.8;
         }
 
-        .nf__links {
-            list-style: none;
+        .nf__back {
             margin-top: var(--sp-6);
-            border-top: 1px solid var(--line);
-            max-width: 30em;
         }
 
-        .nf__links li {
-            border-bottom: 1px solid var(--line);
-        }
-
-        .nf__links a {
-            display: flex;
-            align-items: center;
-            gap: var(--sp-3);
-            min-height: 52px;
-            font-size: var(--fs-sm);
-            color: var(--ink);
-            transition: color .18s var(--ease);
-        }
-
-        .nf__links a:hover {
-            color: var(--accent);
-        }
-
-        .nf__links .idx {
-            font-family: var(--mono);
-            font-size: var(--fs-meta);
-            color: var(--ink-soft);
-            letter-spacing: .08em;
-        }
-
-        .nf__links .go {
-            margin-left: auto;
-            color: var(--accent);
-            flex-shrink: 0;
+        .nf__back .go {
             transition: transform .2s var(--ease);
         }
 
-        .nf__links a:hover .go {
+        .nf__back a:hover .go {
             transform: translateX(4px);
         }
     </style>
@@ -134,40 +103,17 @@
         <section class="wrap nf">
             <p class="nf__code" aria-hidden="true">404</p>
             <h1 class="nf__title">这一页不在了</h1>
-            <p class="nf__lede">地址可能写错了，或者这一页从来没存在过。不着急，下面这几个地方还能去。</p>
+            <p class="nf__lede">地址可能写错了，或者这一页从来没存在过。不着急，回首页看看。</p>
 
-            <ul class="nf__links">
-                <li>
-                    <a href="/">
-                        <span class="idx">01</span>
-                        回到首页
-                        <svg class="go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M5 12h13M13 6l6 6-6 6" />
-                        </svg>
-                    </a>
-                </li>
-                <li>
-                    <a href="decision_maker.html" target="_blank" rel="noopener">
-                        <span class="idx">02</span>
-                        帮你决策
-                        <svg class="go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M7 17 17 7M9 7h8v8" />
-                        </svg>
-                    </a>
-                </li>
-                <li>
-                    <a href="EarlyMortgageRepaymentCalculator.html" target="_blank" rel="noopener">
-                        <span class="idx">03</span>
-                        房贷提前还款减税计算器
-                        <svg class="go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M7 17 17 7M9 7h8v8" />
-                        </svg>
-                    </a>
-                </li>
-            </ul>
+            <p class="nf__back">
+                <a class="btn btn--primary" href="/">
+                    回到首页
+                    <svg class="go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h13M13 6l6 6-6 6" />
+                    </svg>
+                </a>
+            </p>
         </section>
     </main>
 
