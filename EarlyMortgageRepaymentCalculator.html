@@ -1,126 +1,299 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="房贷提前还款减税计算器 — 快速计算提前还款能节省多少利息和减少多少税收。">
+    <meta name="description" content="房贷提前还款减税计算器：按月供预算累积提前还款，逐月估算利息、住房贷款利息专项附加扣除与平衡点。纯前端计算，输入只保存在本机。">
     <meta name="keywords" content="房贷, 提前还款, 减税, 计算器, 利息计算">
-    <meta property="og:title" content="房贷提前还款减税计算器">
+    <meta name="author" content="王政乔">
+    <meta name="theme-color" content="#f7f4ed">
+    <meta property="og:title" content="房贷提前还款减税计算器 | 王政乔">
     <meta property="og:description" content="快速计算房贷提前还款能节省多少利息和减少多少税收。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.zhengqiao.wang/EarlyMortgageRepaymentCalculator.html">
     <link rel="canonical" href="https://www.zhengqiao.wang/EarlyMortgageRepaymentCalculator.html">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="房贷提前还款减税计算器">
+    <meta name="twitter:title" content="房贷提前还款减税计算器 | 王政乔">
     <meta name="twitter:description" content="快速计算房贷提前还款能节省多少利息和减少多少税收。">
-    <title>房贷提前还款减税计算器</title>
+    <title>房贷提前还款减税计算器 | 王政乔</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23f7f4ed'/><text x='50' y='54' font-size='58' font-family='Songti SC,SimSun,serif' fill='%23a44d28' text-anchor='middle' dominant-baseline='middle'>政</text></svg>">
+    <link rel="stylesheet" href="assets/tokens.css">
+    <link rel="stylesheet" href="assets/base.css">
+    <script>
+        try {
+            var t = localStorage.getItem('theme');
+            if (t !== 'dark' && t !== 'light') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+        } catch (e) { }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ============================================================
+           本页独有版式：暖纸底 + 1px 细线 + 编号 + 等宽小字标签。
+           字号只用 5 档 —— 12 / 15 / 16 / 22 / clamp(28px,3.6vw,34px)。
+           间距只用 --sp-1…--sp-8。
+           ============================================================ */
+
+        /* body 是纵向 flex，.page 带 .wrap 的 auto 外边距会变成 flex 项
+           的 fit-content 宽度，被表格的 min-content 撑出手机屏。显式占满
+           可用宽度并允许收缩，横向滚动交给 .table-scroll。 */
+        main.page {
+            width: 100%;
+            min-width: 0;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+        /* ---------------- 01 输入参数 ---------------- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--line-width);
+            background: var(--line);
+            border: var(--line-width) solid var(--line);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .form-grid>.field,
+        .form-actions {
+            background: var(--paper);
+            padding: var(--sp-4);
+        }
+
+        .form-grid>.field {
+            gap: var(--sp-2);
+        }
+
+        /* 输入框去方框，只留一条底线，和表格的 1px 线呼应 */
+        .form-grid input,
+        .form-grid select {
+            background: transparent;
+            border: 0;
+            border-bottom: var(--line-width) solid var(--line-strong);
+            border-radius: 0;
+            padding-left: 0;
+            padding-right: 0;
+            font-size: var(--fs-body);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .form-grid input:hover,
+        .form-grid select:hover {
+            border-color: var(--ink-soft);
+        }
+
+        .form-grid input:focus,
+        .form-grid select:focus {
+            border-color: var(--accent);
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: var(--sp-3);
+        }
+
+        .form-actions .btn--primary {
+            min-width: 160px;
+        }
+
+        .form-actions__hint {
+            margin-left: auto;
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .04em;
+            color: var(--ink-soft);
+            line-height: 44px;
+        }
+
+        /* ---------------- 02 计算结果 ---------------- */
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: var(--line-width);
+            background: var(--line);
+            border: var(--line-width) solid var(--line);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: var(--sp-2);
+            padding: var(--sp-3) var(--sp-4);
+            background: var(--paper);
+        }
+
+        .summary-item .label {
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .06em;
+            line-height: 1.5;
+            color: var(--ink-soft);
+        }
+
+        .summary-item .value {
+            font-size: var(--fs-h2);
+            font-weight: 600;
+            line-height: 1.15;
+            letter-spacing: -0.01em;
+            font-variant-numeric: tabular-nums;
+            color: var(--ink);
+        }
+
+        .summary-item .unit {
+            margin-left: var(--sp-1);
+            font-size: var(--fs-meta);
+            font-weight: 400;
+            color: var(--ink-soft);
+            letter-spacing: 0;
+        }
+
+        /* 多花的钱用赭石；省下的钱保持墨色 */
+        .summary-item.is-cost .value {
+            color: var(--accent);
+        }
+
+        .summary-item.highlight {
+            position: relative;
+        }
+
+        .summary-item.highlight::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .summary-item.highlight .value {
+            color: var(--accent);
+        }
+
+        /* ---------------- 03 逐月明细 ---------------- */
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-2);
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .04em;
             line-height: 1.6;
+            color: var(--ink-soft);
         }
 
-        .header {
-            background: linear-gradient(135deg, #3498db, #2c3e50);
-            color: white;
-            padding: 24px 20px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        .legend__swatch {
+            flex-shrink: 0;
+            width: var(--sp-3);
+            height: var(--sp-3);
+            background: var(--paper-sunk);
+            border: var(--line-width) solid var(--line);
+            border-left: 2px solid var(--accent);
         }
 
-        .header h1 {
-            font-size: 22px;
-            font-weight: 600;
+        .table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: var(--line-width) solid var(--line);
+            border-radius: var(--radius);
+            background: var(--paper);
         }
 
-        .container {
-            max-width: 640px;
-            margin: 0 auto;
-            padding: 20px 16px;
-        }
-
-        .card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-        }
-
-        .card-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 16px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .form-group {
-            margin-bottom: 14px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
-            color: #555;
-            font-weight: 500;
-        }
-
-        .form-group input,
-        .form-group select {
+        #detailTable {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d9d9d9;
-            border-radius: 6px;
-            font-size: 15px;
-            background: #fff;
-            transition: border-color 0.2s;
+            min-width: 560px;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: var(--fs-sm);
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+        #detailTable th,
+        #detailTable td {
+            padding: var(--sp-2) var(--sp-3);
+            border-bottom: var(--line-width) solid var(--line);
+            text-align: right;
+            white-space: nowrap;
         }
 
-        .form-group input::placeholder {
-            color: #bbb;
+        /* 表头：浅纸底、次级墨色，不用深色块 */
+        #detailTable thead th {
+            background: var(--paper-sunk);
+            color: var(--ink-soft);
+            border-bottom: var(--line-width) solid var(--line-strong);
         }
 
-        .btn {
-            width: 100%;
-            padding: 13px;
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
-            margin-top: 6px;
+        /* 首列固定，横向滚动时月份始终可见 */
+        #detailTable th:first-child,
+        #detailTable td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            min-width: 64px;
+            text-align: left;
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            color: var(--ink-soft);
+            background: var(--paper);
+            border-right: var(--line-width) solid var(--line);
         }
 
-        .btn:hover {
-            opacity: 0.9;
+        #detailTable thead th:first-child {
+            z-index: 2;
+            background: var(--paper-sunk);
         }
 
-        .btn:active {
-            transform: scale(0.98);
+        #detailTable tbody tr.balance-point td {
+            background: var(--paper-sunk);
         }
 
-        /* 结果区域 */
+        #detailTable tbody tr.balance-point td:first-child::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 3px;
+            background: var(--accent);
+        }
+
+        #detailTable tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .table-hint {
+            display: none;
+            margin: 0 0 var(--sp-2);
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .04em;
+            color: var(--ink-soft);
+        }
+
+        .table-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--sp-3);
+            margin-top: var(--sp-4);
+        }
+
+        .table-actions .hint {
+            margin: 0;
+        }
+
+        /* 计算后滚到结果区时，让出 64px 的吸顶栏 */
+        #resultSection {
+            scroll-margin-top: var(--sp-8);
+        }
+
         .result-section {
             display: none;
         }
@@ -129,194 +302,311 @@
             display: block;
         }
 
-        .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
+        /* ---------------- 窄屏 ---------------- */
+        @media (max-width: 880px) {
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .table-hint {
+                display: block;
+            }
         }
 
-        .summary-item {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #eee;
-        }
+        @media (max-width: 720px) {
+            .form-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
 
-        .summary-item.highlight {
-            background: #d4edda;
-            border-color: #c3e6cb;
-        }
-
-        .summary-item .label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 4px;
-        }
-
-        .summary-item .value {
-            font-size: 17px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .summary-item .unit {
-            font-size: 12px;
-            color: #888;
-            font-weight: 400;
-        }
-
-        /* 表格 */
-        .table-wrapper {
-            overflow-x: auto;
-            margin-top: 10px;
-            border-radius: 6px;
-            border: 1px solid #e8e8e8;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            min-width: 600px;
-        }
-
-        thead {
-            background: #f5f5f5;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-
-        th {
-            padding: 10px 6px;
-            text-align: right;
-            font-weight: 600;
-            color: #555;
-            border-bottom: 2px solid #ddd;
-            white-space: nowrap;
-        }
-
-        th:first-child {
-            text-align: center;
-        }
-
-        td {
-            padding: 9px 6px;
-            text-align: right;
-            border-bottom: 1px solid #f0f0f0;
-            color: #333;
-        }
-
-        td:first-child {
-            text-align: center;
-            color: #888;
-        }
-
-        tbody tr:nth-child(even) {
-            background: #fafafa;
-        }
-
-        tbody tr.balance-point {
-            background: #d4edda !important;
-        }
-
-        tbody tr:hover {
-            background: #e8f4fd;
-        }
-
-        .note {
-            font-size: 12px;
-            color: #999;
-            margin-top: 10px;
-            text-align: center;
+            .form-actions__hint {
+                flex-basis: 100%;
+                margin-left: 0;
+                line-height: 1.6;
+            }
         }
 
         @media (max-width: 480px) {
-            .summary-grid {
-                grid-template-columns: 1fr;
+            .summary {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .summary-item {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: var(--sp-4);
+                padding: var(--sp-3) var(--sp-4);
+            }
+
+            .summary-item .value {
+                text-align: right;
+            }
+
+            .legend {
+                align-items: flex-start;
+            }
+        }
+
+        /* ---------------- 打印 ---------------- */
+        @media print {
+            .masthead,
+            footer,
+            .form-actions,
+            .btn,
+            .theme-btn,
+            .legend,
+            .table-hint {
+                display: none !important;
+            }
+
+            body {
+                background: #fff;
+                color: #000;
+            }
+
+            .page {
+                padding-top: 0;
+            }
+
+            .sec {
+                border-top-color: #000;
+                margin-top: var(--sp-5);
+            }
+
+            .form-grid,
+            .summary,
+            .table-scroll {
+                background: #fff;
+                border-color: #000;
+            }
+
+            .form-grid>.field,
+            .summary-item,
+            .table-scroll {
+                background: #fff !important;
+            }
+
+            main,
+            main * {
+                color: #000 !important;
+            }
+
+            .summary-item.highlight::before,
+            #detailTable tbody tr.balance-point td:first-child::before {
+                display: none !important;
+            }
+
+            #detailTable th,
+            #detailTable td {
+                background: #fff !important;
+                border-color: #999 !important;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            .table-scroll {
+                overflow: visible !important;
+            }
+
+            #detailTable {
+                min-width: 0 !important;
+                font-size: var(--fs-meta);
+            }
+
+            #detailTable th:first-child,
+            #detailTable td:first-child {
+                position: static;
+            }
+
+            #detailTable thead th {
+                background: #fff !important;
+                border-color: #999 !important;
+            }
+
+            input,
+            select {
+                background: #fff !important;
+                color: #000 !important;
+                border-color: #999 !important;
+            }
+
+            tr {
+                break-inside: avoid;
+            }
+
+            a {
+                text-decoration: none;
+            }
+
+            @page {
+                margin: 12mm;
             }
         }
     </style>
 </head>
+
 <body>
-    <div class="header">
-        <h1>房贷提前还款减税计算器</h1>
-    </div>
-
-    <div class="container">
-        <!-- 表单 -->
-        <div class="card">
-            <div class="card-title">输入参数</div>
-            <div class="form-group">
-                <label for="loanAmount">贷款金额（元）</label>
-                <input type="number" id="loanAmount" value="420000" placeholder="请输入贷款金额">
-            </div>
-            <div class="form-group">
-                <label for="interestRate">贷款利率（%）</label>
-                <input type="number" id="interestRate" value="2.6" step="0.01" placeholder="请输入年利率">
-            </div>
-            <div class="form-group">
-                <label for="loanMonths">还款月数</label>
-                <input type="number" id="loanMonths" value="180" placeholder="请输入还款月数">
-            </div>
-            <div class="form-group">
-                <label for="repaymentType">还款方式</label>
-                <select id="repaymentType">
-                    <option value="equal-principal-interest">等额本息</option>
-                    <option value="equal-principal">等额本金</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="targetBalance">目标贷款余额（元）</label>
-                <input type="number" id="targetBalance" value="10000" placeholder="低于此值时停止计算">
-            </div>
-            <div class="form-group">
-                <label for="monthlyBudget">预计月还款预算（元）</label>
-                <input type="number" id="monthlyBudget" value="11000" placeholder="每月可用于还款的最大金额">
-            </div>
-            <div class="form-group">
-                <label for="annualIncome">预计年收入（元）</label>
-                <input type="number" id="annualIncome" value="360000" placeholder="用于计算税收减免">
-            </div>
-            <button class="btn" onclick="calculate()">开始计算</button>
+    <header class="masthead">
+        <div class="wrap masthead__inner">
+            <a class="mark" href="/">王政乔</a>
+            <nav class="nav" aria-label="主导航">
+                <a class="nav__text" href="/">首页</a>
+                <a class="nav__text" href="index.html#about">关于</a>
+                <a class="nav__text here" href="index.html#tools">工具</a>
+                <span class="nav__sep" aria-hidden="true"></span>
+                <a class="icon-link" href="https://github.com/ZhengqiaoWang" target="_blank" rel="noopener noreferrer"
+                    aria-label="GitHub" title="GitHub">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                        <path
+                            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                </a>
+                <a class="icon-link" href="https://space.bilibili.com/83542572" target="_blank"
+                    rel="noopener noreferrer" aria-label="哔哩哔哩" title="哔哩哔哩">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                        <path
+                            d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373Z" />
+                    </svg>
+                </a>
+                <button class="theme-btn" id="themeBtn" type="button" aria-label="切换日间 / 夜间" title="切换日间 / 夜间">
+                    <svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" />
+                        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                    </svg>
+                    <svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z" />
+                    </svg>
+                </button>
+            </nav>
         </div>
+    </header>
 
-        <!-- 结果 -->
-        <div class="result-section" id="resultSection">
-            <div class="card">
-                <div class="card-title">计算结果</div>
-                <div class="summary-grid" id="summaryGrid"></div>
-                <div class="note">
-                    <span style="color:#28a745;">■</span> 绿色行 = 利息 ≤ 税收优惠（平衡点之后）
-                </div>
+    <main class="wrap page">
+        <h1 class="page-title">房贷提前还款减税计算器</h1>
+        <p class="page-lede">按月供预算累积提前还款资金，逐月估算利息、住房贷款利息专项附加扣除带来的减税，以及两者的平衡点。所有计算都在浏览器里完成。</p>
+        <p class="page-meta">
+            <span>工具 02</span>
+            <span>纯前端计算</span>
+            <span>输入只保存在本机</span>
+        </p>
+
+        <!-- ================= 01 输入参数 ================= -->
+        <section class="sec" aria-labelledby="inputsTitle">
+            <div class="sec__head">
+                <span class="sec__num">01</span>
+                <h2 id="inputsTitle">输入参数</h2>
+                <span class="sec__note">金额单位：元</span>
             </div>
 
-            <div class="card">
-                <div class="card-title">逐月明细</div>
-                <div class="table-wrapper">
+            <form class="form-grid" id="calcForm" autocomplete="off" novalidate>
+                <div class="field">
+                    <label for="loanAmount">贷款金额（元）</label>
+                    <input type="number" id="loanAmount" value="420000" placeholder="请输入贷款金额">
+                </div>
+                <div class="field">
+                    <label for="interestRate">贷款利率（%）</label>
+                    <input type="number" id="interestRate" value="2.6" step="0.01" placeholder="请输入年利率">
+                </div>
+                <div class="field">
+                    <label for="loanMonths">还款月数</label>
+                    <input type="number" id="loanMonths" value="180" placeholder="请输入还款月数">
+                </div>
+                <div class="field">
+                    <label for="repaymentType">还款方式</label>
+                    <select id="repaymentType">
+                        <option value="equal-principal-interest">等额本息</option>
+                        <option value="equal-principal">等额本金</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="targetBalance">目标贷款余额（元）</label>
+                    <input type="number" id="targetBalance" value="10000" placeholder="低于此值时停止计算">
+                </div>
+                <div class="field">
+                    <label for="monthlyBudget">预计月还款预算（元）</label>
+                    <input type="number" id="monthlyBudget" value="11000" placeholder="每月可用于还款的最大金额">
+                </div>
+                <div class="field">
+                    <label for="annualIncome">预计年收入（元）</label>
+                    <input type="number" id="annualIncome" value="360000" placeholder="用于计算税收减免">
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn--primary" type="submit">开始计算</button>
+                    <button class="btn btn--quiet" id="resetBtn" type="button">重置</button>
+                    <span class="form-actions__hint">改动自动保存在本机</span>
+                </div>
+            </form>
+        </section>
+
+        <!-- ================= 02 计算结果 / 03 逐月明细 ================= -->
+        <div class="result-section" id="resultSection">
+            <section class="sec" aria-labelledby="resultTitle">
+                <div class="sec__head">
+                    <span class="sec__num">02</span>
+                    <h2 id="resultTitle">计算结果</h2>
+                    <span class="sec__note">按当前参数估算</span>
+                </div>
+                <div class="summary" id="summaryGrid"></div>
+            </section>
+
+            <section class="sec" aria-labelledby="detailTitle">
+                <div class="sec__head">
+                    <span class="sec__num">03</span>
+                    <h2 id="detailTitle">逐月明细</h2>
+                    <span class="sec__note" id="detailNote">逐月</span>
+                </div>
+                <p class="legend">
+                    <span class="legend__swatch" aria-hidden="true"></span>
+                    <span>加深的行：当月利息 ≤ 税收优惠（平衡点之后）</span>
+                </p>
+                <p class="table-hint">左右滑动查看全部 8 列</p>
+                <div class="table-scroll" tabindex="0" role="region" aria-label="逐月明细表，可左右滚动">
                     <table id="detailTable">
                         <thead>
                             <tr>
-                                <th>月份</th>
-                                <th>月供(元)</th>
-                                <th>本金(元)</th>
-                                <th>利息(元)</th>
-                                <th>税收优惠(元)</th>
-                                <th>提前还款(元)</th>
-                                <th>资金池(元)</th>
-                                <th>剩余本金(元)</th>
+                                <th scope="col">月份</th>
+                                <th scope="col">月供(元)</th>
+                                <th scope="col">本金(元)</th>
+                                <th scope="col">利息(元)</th>
+                                <th scope="col">税收优惠(元)</th>
+                                <th scope="col">提前还款(元)</th>
+                                <th scope="col">资金池(元)</th>
+                                <th scope="col">剩余本金(元)</th>
                             </tr>
                         </thead>
                         <tbody id="detailBody"></tbody>
                     </table>
                 </div>
-            </div>
+                <div class="table-actions">
+                    <button class="btn btn--quiet" id="exportBtn" type="button">导出 CSV</button>
+                    <span class="hint">整份逐月明细，Excel 直接打开</span>
+                </div>
+            </section>
         </div>
-    </div>
+    </main>
+
+    <footer>
+        <div class="wrap foot__inner">
+            <div class="foot__links">
+                <a href="https://beian.miit.gov.cn/?token=5afcc1d2-f71d-48b2-97e0-3db8f54219cf#/Integrated/recordQuery"
+                    target="_blank" rel="noopener noreferrer">豫ICP备18045451号</a>
+                <a href="https://icp.gov.moe/?keyword=20229669" target="_blank" rel="noopener noreferrer">萌ICP备20229669号</a>
+                <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>
+                <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener noreferrer">ForeverBlog</a>
+            </div>
+            <p class="foot__copy">© 2026 王政乔</p>
+        </div>
+    </footer>
+
+    <script src="assets/app.js" defer></script>
 
     <script>
+        /* ================= 计算逻辑（原样保留） ================= */
         function calculateTaxDeduction(annualIncome) {
             const taxThreshold = 60000;
             const housingDeduction = 1000 * 12;
@@ -502,6 +792,9 @@
                 }
             }
 
+            // 供导出 CSV 使用
+            lastResults = results;
+
             // 找平衡点
             const firstBalancePointMonth = results.find(item => item.interest <= item.taxDeduction && item.taxDeduction > 0);
             const balancePointMonth = firstBalancePointMonth ? firstBalancePointMonth.month : null;
@@ -520,7 +813,7 @@
 
             const summaryGrid = document.getElementById('summaryGrid');
             summaryGrid.innerHTML = summaryData.map(item => `
-                <div class="summary-item ${item.label === '平衡点月份' && item.value !== '无' ? 'highlight' : ''}">
+                <div class="summary-item ${item.label === '平衡点月份' && item.value !== '无' ? 'highlight' : ''}${item.label === '总利息支出' ? ' is-cost' : ''}">
                     <div class="label">${item.label}</div>
                     <div class="value">${item.value} <span class="unit">${item.unit}</span></div>
                 </div>
@@ -541,10 +834,146 @@
                 </tr>
             `).join('');
 
+            const detailNote = document.getElementById('detailNote');
+            if (detailNote) {
+                detailNote.textContent = '共 ' + results.length + ' 期';
+            }
+
             // 显示结果
             document.getElementById('resultSection').classList.add('show');
-            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+            // 首次载入时静默重算，不抢滚动位置
+            if (!initializing) {
+                document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+            }
         }
+
+        /* ================= 输入持久化 ================= */
+        var STORAGE_KEY = 'zq.mortgage.inputs.v1';
+        var FIELD_IDS = ['loanAmount', 'interestRate', 'loanMonths', 'repaymentType', 'targetBalance', 'monthlyBudget', 'annualIncome'];
+        var defaults = {};
+        var initializing = true;
+        var lastResults = [];
+
+        function readSavedInputs() {
+            try {
+                var raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return null;
+                var data = JSON.parse(raw);
+                if (!data || typeof data !== 'object') return null;
+                return data;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveInputs() {
+            try {
+                var data = {};
+                FIELD_IDS.forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el) data[id] = el.value;
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                /* 隐私模式下 localStorage 会抛错，忽略 */
+            }
+        }
+
+        function applySavedInputs() {
+            var data = readSavedInputs();
+            if (!data) return;
+            FIELD_IDS.forEach(function (id) {
+                if (!Object.prototype.hasOwnProperty.call(data, id)) return;
+                var value = data[id];
+                if (typeof value !== 'string' || value === '') return;
+                var el = document.getElementById(id);
+                if (el) el.value = value;
+            });
+        }
+
+        function resetInputs() {
+            FIELD_IDS.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) el.value = defaults[id];
+            });
+        }
+
+        /* ================= 导出 CSV（纯前端 Blob） ================= */
+        function round2(value) {
+            return Math.round((Number(value) || 0) * 100) / 100;
+        }
+
+        function exportCsv() {
+            if (!lastResults.length) return;
+
+            var header = ['月份', '月供(元)', '本金(元)', '利息(元)', '税收优惠(元)', '提前还款(元)', '资金池(元)', '剩余本金(元)'];
+            var rows = lastResults.map(function (item) {
+                return [
+                    item.month,
+                    round2(item.monthlyPayment),
+                    round2(item.principal),
+                    round2(item.interest),
+                    round2(item.taxDeduction),
+                    round2(item.prepayment),
+                    round2(item.prepaymentPool),
+                    round2(item.remainingBalance)
+                ].join(',');
+            });
+
+            // BOM 让 Excel 认 UTF-8，不然中文表头是乱码
+            var csv = '\uFEFF' + header.join(',') + '\r\n' + rows.join('\r\n');
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+
+            link.href = url;
+            link.download = '房贷逐月明细.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(function () {
+                URL.revokeObjectURL(url);
+            }, 0);
+        }
+
+        (function initForm() {
+            FIELD_IDS.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) defaults[id] = el.value;
+            });
+
+            var form = document.getElementById('calcForm');
+            if (form) {
+                form.addEventListener('input', saveInputs);
+                form.addEventListener('change', saveInputs);
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    saveInputs();
+                    calculate();
+                });
+            }
+
+            var resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    try {
+                        localStorage.removeItem(STORAGE_KEY);
+                    } catch (e) {
+                    }
+                    resetInputs();
+                    calculate();
+                });
+            }
+
+            var exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', exportCsv);
+            }
+
+            applySavedInputs();
+            calculate();
+            initializing = false;
+        })();
     </script>
 
     <script type="application/ld+json">
@@ -559,4 +988,5 @@
     }
     </script>
 </body>
+
 </html>

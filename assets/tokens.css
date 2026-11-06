@@ -1,0 +1,63 @@
+/* ============================================================
+   tokens.css —— 全站唯一的「决定」都在这里
+   颜色 / 字体 / 字号阶梯 / 间距 / 动效曲线
+   改这里，四个页面一起变。
+   ============================================================ */
+
+:root {
+    /* ---- 色板：暖纸 + 墨 + 赭石 ---- */
+    --paper: #f7f4ed;
+    --paper-sunk: #f0ebe0;
+    --ink: #17140f;
+    --ink-soft: #6b6357;
+    /* 5.4:1 on --paper */
+    --line: #ddd5c6;
+    --line-strong: #c6bba6;
+    --accent: #a44d28;
+    /* 5.2:1 on --paper */
+    --accent-wash: rgba(164, 77, 40, 0.08);
+
+    /* ---- 字体：只用系统字体，不外链 ---- */
+    --sans: "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", system-ui, sans-serif;
+    --serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "SimSun", Georgia, serif;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Courier New", monospace;
+
+    /* ---- 字号阶梯：只有 5 档，不许再加 ---- */
+    --fs-meta: 12px;
+    --fs-sm: 15px;
+    --fs-body: 16px;
+    --fs-h2: 22px;
+    --fs-hero: clamp(48px, 7.4vw, 80px);
+
+    /* ---- 间距：4 的倍数 ---- */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 24px;
+    --sp-6: 32px;
+    --sp-7: 48px;
+    --sp-8: 64px;
+
+    /* ---- 形状与动效 ---- */
+    --radius: 2px;
+    --line-width: 1px;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+
+    color-scheme: light;
+}
+
+[data-theme="dark"] {
+    --paper: #14120e;
+    --paper-sunk: #1c1913;
+    --ink: #ece5d8;
+    --ink-soft: #a49a8b;
+    /* 6.1:1 on --paper */
+    --line: #2e2a22;
+    --line-strong: #453f33;
+    --accent: #d98a5c;
+    /* 6.8:1 on --paper */
+    --accent-wash: rgba(217, 138, 92, 0.12);
+
+    color-scheme: dark;
+}

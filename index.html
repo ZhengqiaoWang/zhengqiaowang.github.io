@@ -7,6 +7,7 @@
     <meta name="description" content="王政乔的个人主页 — 一个爱好摄影的程序猿，专注于 C++、Python、容器和性能优化。">
     <meta name="keywords" content="王政乔, 程序员, C++, Python, 摄影, 个人主页">
     <meta name="author" content="王政乔">
+    <meta name="theme-color" content="#f7f4ed">
     <meta property="og:title" content="王政乔 - 个人主页">
     <meta property="og:description" content="一个爱好摄影的程序猿，专注于软件服务开发与性能优化。">
     <meta property="og:type" content="website">
@@ -18,434 +19,429 @@
     <title>王政乔 | C++工程师 · 摄影师 · 个人主页</title>
     <link rel="sitemap" href="/sitemap.xml" type="application/sitemap+xml" title="Sitemap">
     <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👨‍💻</text></svg>">
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23f7f4ed'/><text x='50' y='54' font-size='58' font-family='Songti SC,SimSun,serif' fill='%23a44d28' text-anchor='middle' dominant-baseline='middle'>政</text></svg>">
+    <link rel="stylesheet" href="assets/tokens.css">
+    <link rel="stylesheet" href="assets/base.css">
+    <script>
+        try {
+            var t = localStorage.getItem('theme');
+            if (t !== 'dark' && t !== 'light') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+        } catch (e) { }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ================= 首屏 ================= */
+        .hero {
+            padding-top: var(--sp-8);
+            padding-bottom: var(--sp-7);
         }
 
-        :root {
-            --bg-color: #f5f5f5;
-            --card-bg: #ffffff;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-            --accent: #00a878;
-            --accent-hover: #00c490;
-            --border-color: #e0e0e0;
+        .hero__text {
+            max-width: 560px;
         }
 
-        [data-theme="dark"] {
-            --bg-color: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --accent: #00d496;
-            --accent-hover: #00f0b0;
-            --border-color: #404040;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 60px 20px;
-            flex: 1;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), #7b68ee);
-            margin: 0 auto 24px;
+        .eyebrow {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            box-shadow: 0 8px 24px rgba(0, 168, 120, 0.25);
+            gap: 10px;
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin-bottom: var(--sp-4);
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 28px;
+            height: 1px;
+            background: var(--accent);
+            flex-shrink: 0;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: var(--fs-hero);
             font-weight: 700;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, var(--text-primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            line-height: 1.04;
+            letter-spacing: -0.035em;
+            text-wrap: balance;
+            margin-bottom: var(--sp-4);
         }
 
-        .tagline {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-        }
-
-        .email {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--accent);
-            text-decoration: none;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            background: rgba(0, 168, 120, 0.1);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .email:hover {
-            background: rgba(0, 168, 120, 0.2);
-            transform: translateY(-2px);
+        .lede {
+            font-size: var(--fs-body);
+            color: var(--ink-soft);
+            max-width: 30em;
+            line-height: 1.8;
+            margin-bottom: var(--sp-4);
         }
 
         .contact-row {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 16px;
+            gap: var(--sp-2) var(--sp-5);
         }
 
-        .social-icon {
+        .contact-row a {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 168, 120, 0.1);
-            border: 1px solid rgba(0, 168, 120, 0.2);
-            border-radius: 50%;
-            font-size: 1.2rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
+            gap: 8px;
+            min-height: 44px;
+            font-size: var(--fs-sm);
+            color: var(--ink);
+            box-shadow: inset 0 -1px 0 var(--line-strong);
+            transition: box-shadow .2s var(--ease), color .2s var(--ease);
         }
 
-        .social-icon:hover {
-            background: rgba(223, 228, 228, 0.815);
-            transform: translateY(-2px);
-        }
-
-        section {
-            margin-bottom: 48px;
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: var(--accent);
-            border-radius: 2px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        .tech-stack {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .tech-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: rgba(0, 168, 120, 0.08);
-            border: 1px solid rgba(0, 168, 120, 0.2);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-        }
-
-        .tech-tag .icon {
-            font-size: 1.1rem;
-        }
-
-        .interests {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .interest-tag {
-            padding: 8px 16px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-
-        .interest-tag:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        .social-links {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .social-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 20px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            min-width: 160px;
-        }
-
-        .social-link:hover {
-            border-color: var(--accent);
-            background: rgba(0, 168, 120, 0.08);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-
-        footer {
-            text-align: center;
-            padding: 24px 20px;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        footer a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        footer a:hover {
+        .contact-row a:hover {
             color: var(--accent);
+            box-shadow: inset 0 -1px 0 var(--accent);
         }
 
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            cursor: pointer;
+        .contact-row svg {
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        /* ================= 关于 ================= */
+        .about {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+            gap: var(--sp-7);
+        }
+
+        .about p {
+            color: var(--ink-soft);
+            max-width: 30em;
+            line-height: 1.9;
+        }
+
+        .about p+p {
+            margin-top: var(--sp-3);
+        }
+
+        .keys {
+            list-style: none;
+        }
+
+        .keys li {
+            display: flex;
+            align-items: baseline;
+            gap: var(--sp-2);
+            padding: 10px 0;
+            border-bottom: 1px dotted var(--line-strong);
+            font-size: var(--fs-sm);
+        }
+
+        .keys li:last-child {
+            border-bottom: 0;
+        }
+
+        .keys .k {
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            color: var(--accent);
+            letter-spacing: .06em;
+            flex-shrink: 0;
+            width: 74px;
+        }
+
+        .keys .v {
+            color: var(--ink);
+        }
+
+        /* ================= 工具 ================= */
+        .tools {
+            display: grid;
+            gap: 1px;
+            background: var(--line);
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .tool {
+            background: var(--paper);
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-            z-index: 1000;
+            gap: var(--sp-4);
+            padding: 18px var(--sp-4);
+            transition: background-color .2s var(--ease);
         }
 
-        .theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        .tool:hover {
+            background: var(--paper-sunk);
         }
 
-        @media (max-width: 600px) {
-            .theme-toggle {
-                top: 10px;
-                right: 10px;
-                width: 45px;
-                height: 45px;
-                font-size: 1.3rem;
+        .tool__idx {
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            color: var(--ink-soft);
+            letter-spacing: .08em;
+            min-width: 24px;
+        }
+
+        .tool__name {
+            display: block;
+            font-size: var(--fs-body);
+            font-weight: 500;
+        }
+
+        .tool__desc {
+            display: block;
+            font-size: var(--fs-sm);
+            color: var(--ink-soft);
+            margin-top: 2px;
+        }
+
+        .tool__go {
+            margin-left: auto;
+            color: var(--accent);
+            transition: transform .2s var(--ease);
+            flex-shrink: 0;
+        }
+
+        .tool:hover .tool__go {
+            transform: translateX(4px);
+        }
+
+        /* ================= 我想说 ================= */
+        .letter {
+            max-width: 33em;
+            font-family: var(--serif);
+            font-size: 17px;
+            line-height: 2;
+            color: var(--ink);
+            padding-left: var(--sp-6);
+            border-left: 1px solid var(--line);
+        }
+
+        .letter p+p {
+            margin-top: var(--sp-4);
+        }
+
+        .letter .quote-mark {
+            display: block;
+            font-size: 36px;
+            line-height: 1.2;
+            color: var(--accent);
+            font-family: var(--serif);
+            margin-bottom: 2px;
+        }
+
+        .sign {
+            margin-top: var(--sp-5);
+            margin-left: var(--sp-6);
+            display: flex;
+            align-items: baseline;
+            gap: var(--sp-3);
+            font-size: var(--fs-meta);
+            color: var(--ink-soft);
+            font-family: var(--mono);
+            letter-spacing: .04em;
+        }
+
+        .sign::before {
+            content: "";
+            width: 32px;
+            height: 1px;
+            background: var(--line-strong);
+            transform: translateY(-4px);
+        }
+
+        /* ================= 响应式（本页独有部分）================= */
+        @media (max-width: 880px) {
+            .hero {
+                padding-top: var(--sp-7);
             }
 
-            .container {
-                padding: 40px 16px;
+            .about {
+                grid-template-columns: minmax(0, 1fr);
+                gap: var(--sp-5);
+            }
+        }
+
+        @media (max-width: 620px) {
+            .hero {
+                padding-bottom: var(--sp-5);
             }
 
-            h1 {
-                font-size: 2rem;
+            .letter {
+                padding-left: var(--sp-5);
+                font-size: 16px;
             }
 
-            .social-links {
-                flex-direction: column;
+            .letter .quote-mark {
+                font-size: 32px;
             }
 
-            .social-link {
-                width: 100%;
-                justify-content: center;
+            .sign {
+                margin-left: var(--sp-5);
+            }
+
+            .tool {
+                padding: var(--sp-4);
             }
         }
     </style>
 </head>
 
 <body>
-    <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换日间/夜间模式">
-        🌙
-    </button>
-
-    <div class="container">
-        <header>
-            <div class="avatar">👨‍💻</div>
-            <h1>王政乔</h1>
-            <p class="tagline">一个爱好摄影的程序🐒</p>
-            <div class="contact-row">
-                <a href="mailto:me@zhengqiao.wang" class="social-icon" title="邮箱">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                        <path
-                            d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                    </svg>
-                </a>
-                <a href="https://github.com/ZhengqiaoWang" target="_blank" class="social-icon" rel="noopener noreferrer"
-                    title="GitHub">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+    <header class="masthead">
+        <div class="wrap masthead__inner">
+            <a class="mark" href="/">王政乔</a>
+            <nav class="nav" aria-label="主导航">
+                <a class="nav__text here" href="/">首页</a>
+                <a class="nav__text" href="#about">关于</a>
+                <a class="nav__text" href="#tools">工具</a>
+                <span class="nav__sep" aria-hidden="true"></span>
+                <a class="icon-link" href="https://github.com/ZhengqiaoWang" target="_blank" rel="noopener noreferrer"
+                    aria-label="GitHub" title="GitHub">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
                         <path
                             d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                     </svg>
                 </a>
-                <a href="https://space.bilibili.com/83542572" target="_blank" class="social-icon"
-                    rel="noopener noreferrer" title="哔哩哔哩">
-                    <svg role="img" viewBox="0 0 24 24" height="20" fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <title>哔哩哔哩</title>
+                <a class="icon-link" href="https://space.bilibili.com/83542572" target="_blank"
+                    rel="noopener noreferrer" aria-label="哔哩哔哩" title="哔哩哔哩">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
                         <path
                             d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373Z" />
                     </svg>
                 </a>
-            </div>
-        </header>
+                <button class="theme-btn" id="themeBtn" type="button" aria-label="切换日间 / 夜间" title="切换日间 / 夜间">
+                    <svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" />
+                        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                    </svg>
+                    <svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z" />
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
 
-        <section>
-            <h2 class="section-title">技术栈</h2>
-            <div class="card">
-                <div class="tech-stack">
-                    <span class="tech-tag"><span class="icon">⚡</span> C++</span>
-                    <span class="tech-tag"><span class="icon">🐍</span> Python</span>
-                    <span class="tech-tag"><span class="icon">🐳</span> 容器</span>
-                    <span class="tech-tag"><span class="icon">🚀</span> 性能优化</span>
+    <main id="top">
+        <section class="hero wrap">
+            <div class="hero__text">
+                <p class="eyebrow">C++ 工程师 · 摄影爱好者</p>
+                <h1>王政乔</h1>
+                <p class="lede">专注于软件服务开发与性能优化。喜欢探索技术本质，也喜欢在取景框里找秩序。</p>
+                <div class="contact-row">
+                    <a href="mailto:me@zhengqiao.wang">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="2.5" y="4.5" width="19" height="15" rx="2" />
+                            <path d="M3 7l9 6 9-6" />
+                        </svg>
+                        me@zhengqiao.wang
+                    </a>
+                    <a href="https://space.bilibili.com/83542572" target="_blank" rel="noopener noreferrer">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 20l0-13h16v9a4 4 0 0 1-4 4z" />
+                            <path d="M4 7l-1.5-2M20 7l1.5-2" />
+                        </svg>
+                        在 B 站看到我
+                    </a>
+                    <a href="https://www.shutterstock.com/zh/g/ZhengqiaoWang" target="_blank" rel="noopener noreferrer">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+                            <circle cx="8.4" cy="10.2" r="1.6" />
+                            <path d="M4.7 17.4l4.3-4a1.5 1.5 0 0 1 2.1 0l6.8 6.6" />
+                        </svg>
+                        Shutterstock 图片库
+                    </a>
                 </div>
             </div>
         </section>
 
-        <section>
-            <h2 class="section-title">关于我</h2>
-            <div class="card">
-                <p>热爱编程与摄影，专注于软件服务开发与性能优化。喜欢探索技术本质，追求高效优雅的解决方案。</p>
+        <section class="sec wrap" id="about">
+            <div class="sec__head">
+                <span class="sec__num">01</span>
+                <h2>关于</h2>
+            </div>
+            <div class="about">
+                <div>
+                    <p>热爱编程与摄影，专注于软件服务开发与性能优化。喜欢探索技术本质，追求高效优雅的解决方案。</p>
+                    <p>职业之外，摸鱼、摄影、唱歌占据了大部分空闲。写代码和拍照其实是同一件事——都是在有限的条件里，找到那个刚好的解。</p>
+                </div>
+                <ul class="keys">
+                    <li><span class="k">LANG</span><span class="v">C++ · Python</span></li>
+                    <li><span class="k">INFRA</span><span class="v">容器 · 性能优化</span></li>
+                    <li><span class="k">ELSE</span><span class="v">摸鱼 · 摄影 · 唱歌</span></li>
+                    <li><span class="k">MAIL</span><span class="v">me@zhengqiao.wang</span></li>
+                </ul>
             </div>
         </section>
 
-        <section>
-            <h2 class="section-title">兴趣爱好</h2>
-            <div class="interests">
-                <span class="interest-tag">🐟 摸鱼</span>
-                <span class="interest-tag">📷 摄影</span>
-                <span class="interest-tag">🎤 唱歌</span>
+        <section class="sec wrap" id="tools">
+            <div class="sec__head">
+                <span class="sec__num">02</span>
+                <h2>工具</h2>
+                <span class="sec__note">顺手做的小东西</span>
             </div>
-        </section>
-
-        <section>
-            <h2 class="section-title">工具导航</h2>
-            <div class="social-links">
-                <a href="decision_maker.html" class="social-link" target="_blank" rel="noopener noreferrer">
-                    <span>🎲</span>
-                    <span>帮你决策</span>
+            <div class="tools">
+                <a class="tool" href="decision_maker.html">
+                    <span class="tool__idx">01</span>
+                    <span>
+                        <span class="tool__name">帮你决策</span>
+                        <span class="tool__desc">随机选择器 —— 石头剪刀布、CityWalk、是 / 否、掷骰子</span>
+                    </span>
+                    <svg class="tool__go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h13M13 6l6 6-6 6" />
+                    </svg>
                 </a>
-                <a href="EarlyMortgageRepaymentCalculator.html" class="social-link" target="_blank" rel="noopener noreferrer">
-                    <span>🏠</span>
-                    <span>房贷提前还款减税计算器</span>
+                <a class="tool" href="EarlyMortgageRepaymentCalculator.html">
+                    <span class="tool__idx">02</span>
+                    <span>
+                        <span class="tool__name">房贷提前还款减税计算器</span>
+                        <span class="tool__desc">算清楚提前还一笔能省多少利息、少交多少税</span>
+                    </span>
+                    <svg class="tool__go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h13M13 6l6 6-6 6" />
+                    </svg>
                 </a>
             </div>
         </section>
 
-        <section>
-            <h2 class="section-title">我想说</h2>
-            <div class="card">
-                <p>AI时代到来，个人博客还会有人看么？个人博客的流量里有多少是真人呢？当个人的分享逐渐变成AI模型的训练资源，一个新的信息壁垒迅速产生，开源怕是不复存在了。<br /><br />思来想去，决定还是下线了我的个人博客，只留这样一个界面纪念我曾写过博客。
-                </p>
+        <section class="sec wrap" id="note">
+            <div class="sec__head">
+                <span class="sec__num">03</span>
+                <h2>我想说</h2>
             </div>
+            <div class="letter">
+                <span class="quote-mark" aria-hidden="true">「</span>
+                <p>AI 时代到来，个人博客还会有人看么？个人博客的流量里有多少是真人呢？当个人的分享逐渐变成 AI 模型的训练资源，一个新的信息壁垒迅速产生，开源怕是不复存在了。</p>
+                <p>思来想去，决定还是下线了我的个人博客，只留这样一个界面纪念我曾写过博客。</p>
+            </div>
+            <p class="sign">王政乔 · 2026</p>
         </section>
-
-    </div>
+    </main>
 
     <footer>
-        <p>© 2026 王政乔. All rights reserved.</p>
-        <p style="margin-top: 8px;">
-            <a href="https://beian.miit.gov.cn/?token=5afcc1d2-f71d-48b2-97e0-3db8f54219cf#/Integrated/recordQuery"
-                target="_blank" rel="noopener noreferrer">豫ICP备18045451号</a>
-            <a href="https://icp.gov.moe/?keyword=20229669" target="_blank" rel="noopener noreferrer">萌ICP备20229669号</a>
-            <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>
-            <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener noreferrer">ForeverBlog</a>
-        </p>
+        <div class="wrap foot__inner">
+            <div class="foot__links">
+                <a href="https://beian.miit.gov.cn/?token=5afcc1d2-f71d-48b2-97e0-3db8f54219cf#/Integrated/recordQuery"
+                    target="_blank" rel="noopener noreferrer">豫ICP备18045451号</a>
+                <a href="https://icp.gov.moe/?keyword=20229669" target="_blank" rel="noopener noreferrer">萌ICP备20229669号</a>
+                <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>
+                <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener noreferrer">ForeverBlog</a>
+            </div>
+            <p class="foot__copy">© 2026 王政乔</p>
+        </div>
     </footer>
 
-    <script>
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        
-        // 检查本地存储中保存的主题
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            htmlElement.setAttribute('data-theme', 'dark');
-            themeToggle.textContent = '☀️';
-        }
-
-        // 切换主题
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            if (currentTheme === 'dark') {
-                htmlElement.removeAttribute('data-theme');
-                themeToggle.textContent = '🌙';
-                localStorage.setItem('theme', 'light');
-            } else {
-                htmlElement.setAttribute('data-theme', 'dark');
-                themeToggle.textContent = '☀️';
-                localStorage.setItem('theme', 'dark');
-            }
-        });
-    </script>
+    <script src="assets/app.js" defer></script>
 
     <script type="application/ld+json">
     {
@@ -457,7 +453,8 @@
       "description": "一个爱好摄影的程序猿，专注于软件服务开发与性能优化。",
       "sameAs": [
         "https://github.com/ZhengqiaoWang",
-        "https://space.bilibili.com/83542572"
+        "https://space.bilibili.com/83542572",
+        "https://www.shutterstock.com/zh/g/ZhengqiaoWang"
       ],
       "email": "me@zhengqiao.wang"
     }

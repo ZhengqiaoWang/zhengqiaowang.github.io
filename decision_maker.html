@@ -1,543 +1,544 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="帮你决策 — 随机选择器，支持石头剪刀布、CityWalk 随机挑战、是/否、掷骰子等多种场景。">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="帮你决策 — 随机选择器。加几个候选项，让概率替你拍板；内置石头剪刀布、CityWalk、是 / 否、1–6 等快速模板，选项自动保存在本机浏览器。">
     <meta name="keywords" content="随机选择器, 帮你决策, 随机, 石头剪刀布, 掷骰子">
-    <meta property="og:title" content="帮你决策 - 随机选择器">
-    <meta property="og:description" content="随机选择器，支持石头剪刀布、CityWalk 随机挑战、是/否、掷骰子等多种场景。">
+    <meta name="author" content="王政乔">
+    <meta name="theme-color" content="#f7f4ed">
+    <meta property="og:title" content="帮你决策 | 王政乔">
+    <meta property="og:description" content="加几个候选项，让概率替你拍板。纯前端随机选择器，选项只存在本机。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.zhengqiao.wang/decision_maker.html">
     <link rel="canonical" href="https://www.zhengqiao.wang/decision_maker.html">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="帮你决策 - 随机选择器">
-    <meta name="twitter:description" content="随机选择器，支持石头剪刀布、CityWalk 随机挑战、是/否、掷骰子等多种场景。">
-    <title>帮你决策 - 随机选择器</title>
+    <meta name="twitter:title" content="帮你决策 | 王政乔">
+    <meta name="twitter:description" content="加几个候选项，让概率替你拍板。纯前端随机选择器，选项只存在本机。">
+    <title>帮你决策 | 王政乔</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23f7f4ed'/><text x='50' y='54' font-size='58' font-family='Songti SC,SimSun,serif' fill='%23a44d28' text-anchor='middle' dominant-baseline='middle'>政</text></svg>">
+    <link rel="stylesheet" href="assets/tokens.css">
+    <link rel="stylesheet" href="assets/base.css">
+    <script>
+        try {
+            var t = localStorage.getItem('theme');
+            if (t !== 'dark' && t !== 'light') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+        } catch (e) { }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ================= 本页独有版式 ================= */
+        .board {
+            max-width: 640px;
         }
 
-        :root {
-            --primary: #667eea;
-            --primary-dark: #764ba2;
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --radius: 12px;
-            --spacing-sm: 8px;
-            --spacing-md: 16px;
-            --spacing-lg: 24px;
-            --spacing-xl: 32px;
+        /* 本页所有可点区域都撑到 44px */
+        .masthead .mark {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
         }
 
-        html, body {
-            height: 100%;
-            overflow-x: hidden;
+        .masthead .icon-link,
+        .masthead .theme-btn {
+            width: 44px;
+            height: 44px;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100dvh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: var(--spacing-lg);
-            -webkit-tap-highlight-color: transparent;
+        footer .foot__links a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
         }
 
-        .container {
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: var(--spacing-xl);
-            max-width: 500px;
-            width: 100%;
-            max-height: calc(100dvh - var(--spacing-lg) * 2);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        /* ---- 01 快速模板 ---- */
+        .tpl-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--sp-2);
         }
 
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: var(--spacing-lg);
-            font-size: clamp(20px, 5vw, 28px);
+        .tpl-btn {
+            justify-content: flex-start;
+            padding: 0 var(--sp-4);
+            min-height: 48px;
+        }
+
+        .tpl-idx {
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .06em;
+            color: var(--ink-soft);
             flex-shrink: 0;
         }
 
-        .input-section {
+        .tpl-btn.active {
+            border-color: var(--accent);
+            background: var(--accent-wash);
+            color: var(--accent);
+        }
+
+        .tpl-btn.active .tpl-idx {
+            color: var(--accent);
+        }
+
+        /* ---- 02 候选项 ---- */
+        .add-row {
             display: flex;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
-            flex-shrink: 0;
+            align-items: flex-end;
+            gap: var(--sp-2);
         }
 
-        /* 预设模板区域 */
-        .templates-section {
-            margin-bottom: var(--spacing-md);
-            flex-shrink: 0;
-        }
-
-        .templates-label {
-            font-size: 14px;
-            color: #999;
-            margin-bottom: var(--spacing-sm);
-            text-align: center;
-        }
-
-        .templates-grid {
-            display: flex;
-            gap: var(--spacing-sm);
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .template-btn {
-            padding: 8px 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: var(--radius);
-            background: white;
-            font-size: 14px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-
-        .template-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: #f5f3ff;
-        }
-
-        .template-btn:active {
-            transform: scale(0.95);
-        }
-
-        .template-btn.active {
-            border-color: var(--primary);
-            background: var(--bg-gradient);
-            color: white;
-        }
-
-        .input-section input {
+        .add-row .field {
             flex: 1;
             min-width: 0;
-            padding: 10px 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: var(--radius);
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s;
         }
 
-        .input-section input:focus {
-            border-color: var(--primary);
-        }
-
-        .input-section button {
-            padding: 10px 18px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-            white-space: nowrap;
+        .add-row .btn {
             flex-shrink: 0;
+            padding: 0 var(--sp-4);
         }
 
-        .input-section button:hover {
-            background: #5568d3;
-        }
-
-        .list-section {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: var(--spacing-md);
-            min-height: 0;
+        .list-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: var(--sp-3);
+            margin: var(--sp-5) 0 var(--sp-2);
         }
 
         .option-count {
-            text-align: center;
-            color: #999;
-            font-size: 14px;
-            margin-bottom: var(--spacing-sm);
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .04em;
+            color: var(--ink-soft);
         }
 
         .options-list {
             list-style: none;
+            border-top: 1px solid var(--line);
+            counter-reset: opt;
         }
 
         .options-list li {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px var(--spacing-md);
-            background: #f5f5f5;
-            border-radius: var(--radius);
-            margin-bottom: var(--spacing-sm);
-            transition: background 0.3s;
-            animation: fadeIn 0.3s ease;
+            gap: var(--sp-3);
+            padding: var(--sp-2) 0;
+            border-bottom: 1px solid var(--line);
+            animation: fadeIn .3s var(--ease);
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .options-list li:hover {
-            background: #eaeaea;
+        .options-list li:not(.empty-tip)::before {
+            counter-increment: opt;
+            content: counter(opt, decimal-leading-zero);
+            flex-shrink: 0;
+            width: var(--sp-5);
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .08em;
+            color: var(--accent);
         }
 
         .options-list li span {
             flex: 1;
             min-width: 0;
-            color: #333;
-            font-size: 15px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            padding-right: var(--spacing-sm);
+            font-size: var(--fs-body);
+            color: var(--ink);
         }
 
-        .options-list li button {
+        .opt-del {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            padding: 0;
             background: none;
-            border: none;
-            color: #999;
-            font-size: 22px;
-            cursor: pointer;
-            padding: 0 4px;
-            transition: color 0.3s;
-            line-height: 1;
-            flex-shrink: 0;
-        }
-
-        .options-list li button:hover {
-            color: #e74c3c;
-        }
-
-        .action-section {
-            flex-shrink: 0;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
-        }
-
-        .action-buttons button {
-            flex: 1;
-            padding: 12px 16px;
-            border: none;
+            border: 0;
             border-radius: var(--radius);
-            font-size: 16px;
-            font-weight: 600;
+            color: var(--ink-soft);
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.3s;
+            transition: color .18s var(--ease), background-color .18s var(--ease);
         }
 
-        .action-buttons button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        .opt-del:hover {
+            color: var(--accent);
+            background: var(--accent-wash);
         }
 
-        .action-buttons button:active {
-            transform: translateY(0);
+        .empty-tip {
+            display: block;
+            padding: var(--sp-5) 0;
+            border-bottom: 1px solid var(--line);
+            text-align: center;
+            font-size: var(--fs-sm);
+            color: var(--ink-soft);
         }
 
-        .random-btn {
-            background: var(--bg-gradient);
-            color: white;
+        /* ---- 03 抽一个 ---- */
+        .draw-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--sp-2);
         }
 
-        .clear-btn {
-            background: #f5f5f5;
-            color: #666;
+        .draw-actions .btn {
+            flex: 1 1 180px;
         }
 
-        .result-wrapper {
-            min-height: 80px;
+        .result {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--sp-1);
+            min-height: 120px;
+            margin-top: var(--sp-4);
+            padding: var(--sp-5) var(--sp-4);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--paper-sunk);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity .25s var(--ease), transform .25s var(--ease),
+                border-color .25s var(--ease), background-color .25s var(--ease);
         }
 
-        /* 触发次数统计 */
-        .stats-section {
-            margin-top: var(--spacing-md);
-            padding: var(--spacing-sm) 0;
+        .result.show {
+            opacity: 1;
+            transform: none;
+        }
+
+        .result.rolling {
+            border-color: var(--line-strong);
+        }
+
+        .result.rolling .result-value {
+            animation: pulse .6s ease infinite alternate;
+        }
+
+        .result.winner {
+            border-color: var(--accent);
+            background: var(--accent-wash);
+            animation: celebrate .5s var(--ease);
+        }
+
+        .result-label {
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            letter-spacing: .08em;
+            color: var(--ink-soft);
+        }
+
+        .result.winner .result-label {
+            color: var(--accent);
+        }
+
+        .result-value {
+            font-size: var(--fs-h2);
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--ink);
+            word-break: break-word;
+        }
+
+        .again-btn {
+            display: none;
+            margin-top: var(--sp-2);
+            padding: 0 var(--sp-5);
+            border-color: transparent;
+            color: var(--ink-soft);
+        }
+
+        .result.show:not(.rolling) .again-btn {
+            display: inline-flex;
+        }
+
+        .again-btn:hover {
+            border-color: transparent;
+            color: var(--accent);
+            background: var(--accent-wash);
+        }
+
+        .stats {
+            margin-top: var(--sp-4);
+        }
+
+        .stats__head {
+            margin-bottom: var(--sp-2);
+        }
+
+        .stats:has(.stats-list:empty) .stats__head {
+            display: none;
         }
 
         .stats-list {
             list-style: none;
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
+            gap: var(--sp-2);
         }
 
         .stats-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            background: #f5f5f5;
-            border-radius: 20px;
-            font-size: 13px;
-            color: #666;
+            display: inline-flex;
+            align-items: baseline;
+            gap: var(--sp-2);
+            padding: var(--sp-1) var(--sp-3);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            font-size: var(--fs-sm);
+            color: var(--ink-soft);
         }
 
-        .stats-item .stat-label {
-            white-space: nowrap;
+        .stat-label {
+            max-width: 120px;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 80px;
+            white-space: nowrap;
         }
 
-        .stats-item .stat-count {
-            font-weight: 600;
-            color: #333;
+        .stat-count {
+            font-family: var(--mono);
+            font-size: var(--fs-meta);
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
         }
 
-        .result {
-            padding: var(--spacing-md);
-            border-radius: var(--radius);
-            text-align: center;
-            color: white;
-            font-weight: 600;
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            opacity: 0;
-            transform: scale(0.95);
-            transition: opacity 0.3s, transform 0.3s, background 0.3s, box-shadow 0.3s;
-            word-break: break-word;
-        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
 
-        .result.show {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .result-label {
-            font-size: clamp(12px, 3vw, 14px);
-            opacity: 0.8;
-            font-weight: 400;
-        }
-
-        .result-value {
-            font-size: clamp(24px, 6vw, 36px);
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        /* 滚动中状态 */
-        .result.rolling {
-            background: linear-gradient(135deg, #a8b8e8 0%, #b898d8 100%);
-        }
-
-        .result.rolling .result-value {
-            font-size: clamp(18px, 4vw, 24px);
-            animation: pulse 0.15s ease infinite alternate;
+            to {
+                opacity: 1;
+                transform: none;
+            }
         }
 
         @keyframes pulse {
-            from { opacity: 0.7; }
-            to { opacity: 1; }
-        }
+            from {
+                opacity: .5;
+            }
 
-        /* 选择结果状态 */
-        .result.winner {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.4);
-            animation: celebrate 0.5s ease;
+            to {
+                opacity: 1;
+            }
         }
 
         @keyframes celebrate {
-            0% { transform: scale(0.95); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .empty-tip {
-            text-align: center;
-            color: #999;
-            padding: var(--spacing-lg);
-            font-size: 14px;
-        }
-
-        /* 小屏幕适配 */
-        @media (max-width: 480px) {
-            body {
-                padding: 12px;
-                align-items: stretch;
+            0% {
+                transform: scale(.985);
             }
 
-            .container {
-                padding: var(--spacing-lg);
-                max-height: 100dvh;
-                border-radius: 0;
-                box-shadow: none;
+            55% {
+                transform: scale(1.012);
             }
 
-            h1 {
-                margin-bottom: var(--spacing-md);
-            }
-
-            .templates-grid {
-                gap: 6px;
-            }
-
-            .template-btn {
-                padding: 6px 10px;
-                font-size: 13px;
-            }
-
-            .input-section input {
-                padding: 12px 14px;
-            }
-
-            .input-section button {
-                padding: 12px 16px;
-            }
-
-            .options-list li {
-                padding: 12px var(--spacing-md);
-            }
-
-            .options-list li span {
-                font-size: 16px;
-            }
-
-            .action-buttons button {
-                padding: 14px 16px;
+            100% {
+                transform: scale(1);
             }
         }
 
-        /* 超小屏幕适配（iPhone SE 第一代等） */
-        @media (max-width: 360px) and (max-height: 640px) {
-            body {
-                padding: 0;
+        @media (prefers-reduced-motion: reduce) {
+
+            .options-list li,
+            .result,
+            .result.winner,
+            .result.rolling .result-value {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .board {
+                max-width: none;
             }
 
-            .container {
-                padding: 16px;
-                border-radius: 0;
+            .tpl-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            h1 {
-                font-size: 20px;
-                margin-bottom: 12px;
-            }
-
-            .input-section {
-                margin-bottom: 12px;
-            }
-
-            .input-section input {
-                padding: 10px 12px;
-                font-size: 16px;
-            }
-
-            .input-section button {
-                padding: 10px 14px;
-                font-size: 15px;
-            }
-
-            .options-list li {
-                padding: 10px 12px;
-                margin-bottom: 6px;
-            }
-
-            .options-list li span {
-                font-size: 15px;
-            }
-
-            .action-buttons {
-                margin-bottom: 12px;
-            }
-
-            .action-buttons button {
-                padding: 12px 14px;
-                font-size: 15px;
+            .tpl-btn {
+                padding: 0 var(--sp-3);
+                gap: var(--sp-1);
             }
 
             .result {
-                min-height: 50px;
-                padding: 12px;
-            }
-        }
-
-        /* 防止 iOS 缩放 */
-        @media screen and (max-device-width: 480px) {
-            .input-section input,
-            .action-buttons button,
-            .input-section button {
-                font-size: 16px !important;
+                min-height: 104px;
             }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>🎲 随机选择器</h1>
-
-        <div class="templates-section">
-            <div class="templates-label">快速模板</div>
-            <div class="templates-grid">
-                <button class="template-btn" data-template="rock-paper-scissors">✊ 石头剪刀布</button>
-                <button class="template-btn" data-template="citywalk">🚶 CityWalk 随机挑战</button>
-                <button class="template-btn" data-template="yes-no">🪙 是/否</button>
-                <button class="template-btn" data-template="dice">🎲 1-6</button>
-            </div>
+    <header class="masthead">
+        <div class="wrap masthead__inner">
+            <a class="mark" href="/">王政乔</a>
+            <nav class="nav" aria-label="主导航">
+                <a class="nav__text" href="/">首页</a>
+                <a class="nav__text here" href="/#tools">工具</a>
+                <span class="nav__sep" aria-hidden="true"></span>
+                <a class="icon-link" href="https://github.com/ZhengqiaoWang" target="_blank" rel="noopener noreferrer"
+                    aria-label="GitHub" title="GitHub">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                        <path
+                            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                </a>
+                <a class="icon-link" href="https://space.bilibili.com/83542572" target="_blank"
+                    rel="noopener noreferrer" aria-label="哔哩哔哩" title="哔哩哔哩">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                        <path
+                            d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373Z" />
+                    </svg>
+                </a>
+                <button class="theme-btn" id="themeBtn" type="button" aria-label="切换日间 / 夜间" title="切换日间 / 夜间">
+                    <svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" />
+                        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                    </svg>
+                    <svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z" />
+                    </svg>
+                </button>
+            </nav>
         </div>
+    </header>
 
-        <div class="input-section">
-            <input type="text" id="optionInput" placeholder="输入选项后点击添加" autocomplete="off">
-            <button onclick="addOption()">添加</button>
-        </div>
+    <main class="wrap page">
+        <h1 class="page-title">帮你决策</h1>
+        <p class="page-lede">选项越少，答案越干脆。加几个候选项，剩下的交给概率——它不一定对，但至少不偏心。</p>
+        <p class="page-meta">
+            <span>工具 01</span>
+            <span>纯前端运行</span>
+            <span>选项只保存在这台设备</span>
+        </p>
 
-        <div class="list-section">
-            <div class="option-count" id="optionCount"></div>
-            <ul class="options-list" id="optionsList">
-                <li class="empty-tip" id="emptyTip">还没有添加任何选项</li>
-            </ul>
-        </div>
+        <div class="board">
+            <section class="sec" aria-labelledby="tplTitle">
+                <div class="sec__head">
+                    <span class="sec__num">01</span>
+                    <h2 id="tplTitle">快速模板</h2>
+                    <span class="sec__note">替换当前列表</span>
+                </div>
+                <div class="tpl-grid">
+                    <button class="btn tpl-btn template-btn" type="button" data-template="rock-paper-scissors">
+                        <span class="tpl-idx" aria-hidden="true">01</span>石头剪刀布
+                    </button>
+                    <button class="btn tpl-btn template-btn" type="button" data-template="citywalk">
+                        <span class="tpl-idx" aria-hidden="true">02</span>CityWalk 随机挑战
+                    </button>
+                    <button class="btn tpl-btn template-btn" type="button" data-template="yes-no">
+                        <span class="tpl-idx" aria-hidden="true">03</span>是 / 否
+                    </button>
+                    <button class="btn tpl-btn template-btn" type="button" data-template="dice">
+                        <span class="tpl-idx" aria-hidden="true">04</span>1–6 点数
+                    </button>
+                </div>
+            </section>
 
-        <div class="action-section">
-            <div class="action-buttons">
-                <button class="random-btn" onclick="randomSelect()">🎯 随机选择</button>
-                <button class="clear-btn" onclick="clearAll()">清空</button>
-            </div>
+            <section class="sec" aria-labelledby="listTitle">
+                <div class="sec__head">
+                    <span class="sec__num">02</span>
+                    <h2 id="listTitle">候选项</h2>
+                    <span class="sec__note">回车也能添加</span>
+                </div>
+                <div class="add-row">
+                    <div class="field">
+                        <label for="optionInput">新选项</label>
+                        <input type="text" id="optionInput" placeholder="比如：去吃面" autocomplete="off">
+                    </div>
+                    <button class="btn btn--primary" type="button" onclick="addOption()">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        添加
+                    </button>
+                </div>
 
-            <div class="result-wrapper">
-                <div class="result" id="result">
+                <div class="list-head">
+                    <span class="option-count" id="optionCount"></span>
+                    <span class="option-count">自动保存于本机</span>
+                </div>
+
+                <ul class="options-list" id="optionsList">
+                    <li class="empty-tip" id="emptyTip">还没有添加任何选项</li>
+                </ul>
+            </section>
+
+            <section class="sec" aria-labelledby="drawTitle">
+                <div class="sec__head">
+                    <span class="sec__num">03</span>
+                    <h2 id="drawTitle">抽一个</h2>
+                    <span class="sec__note">至少两个选项</span>
+                </div>
+
+                <div class="draw-actions">
+                    <button class="btn btn--primary random-btn" type="button" onclick="randomSelect()">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="4" y="4" width="16" height="16" rx="2" />
+                            <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none" />
+                            <circle cx="15" cy="9" r="1" fill="currentColor" stroke="none" />
+                            <circle cx="9" cy="15" r="1" fill="currentColor" stroke="none" />
+                            <circle cx="15" cy="15" r="1" fill="currentColor" stroke="none" />
+                        </svg>
+                        随机抽一个
+                    </button>
+                    <button class="btn clear-btn" type="button" onclick="clearAll()">清空列表</button>
+                    <button class="btn share-btn" type="button" id="shareBtn">分享这组选项</button>
+                </div>
+
+                <div class="result" id="result" aria-live="polite" aria-atomic="true" aria-busy="false">
                     <span class="result-label" id="resultLabel"></span>
                     <span class="result-value" id="resultValue"></span>
+                    <button class="btn again-btn" type="button" onclick="randomSelect()">再来一次</button>
                 </div>
-                <div class="stats-section">
+
+                <div class="stats">
+                    <p class="mono stats__head">抽中次数（刷新后归零）</p>
                     <ul class="stats-list" id="statsList"></ul>
                 </div>
-            </div>
+            </section>
         </div>
-    </div>
+    </main>
+
+    <footer>
+        <div class="wrap foot__inner">
+            <div class="foot__links">
+                <a href="https://beian.miit.gov.cn/?token=5afcc1d2-f71d-48b2-97e0-3db8f54219cf#/Integrated/recordQuery"
+                    target="_blank" rel="noopener noreferrer">豫ICP备18045451号</a>
+                <a href="https://icp.gov.moe/?keyword=20229669" target="_blank" rel="noopener noreferrer">萌ICP备20229669号</a>
+                <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer">开往</a>
+                <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener noreferrer">ForeverBlog</a>
+            </div>
+            <p class="foot__copy">© 2026 王政乔</p>
+        </div>
+    </footer>
+
+    <script src="assets/app.js" defer></script>
 
     <script>
-        let options = [];
-        let isRolling = false;
+        var options = [];
+        var isRolling = false;
+
+        // 选项持久化：只存字符串数组，隐私模式下读写失败直接忽略
+        var STORAGE_KEY = 'zq.decision.options.v1';
 
         // 预设模板
         var templates = {
@@ -559,26 +560,142 @@
             }
         };
 
-        const optionInput = document.getElementById('optionInput');
-        const optionsList = document.getElementById('optionsList');
-        const optionCount = document.getElementById('optionCount');
-        const result = document.getElementById('result');
-        const resultLabel = document.getElementById('resultLabel');
-        const resultValue = document.getElementById('resultValue');
-        const templateBtns = document.querySelectorAll('.template-btn');
-        const statsList = document.getElementById('statsList');
+        var optionInput = document.getElementById('optionInput');
+        var optionsList = document.getElementById('optionsList');
+        var optionCount = document.getElementById('optionCount');
+        var result = document.getElementById('result');
+        var resultLabel = document.getElementById('resultLabel');
+        var resultValue = document.getElementById('resultValue');
+        var templateBtns = document.querySelectorAll('.template-btn');
+        var statsList = document.getElementById('statsList');
 
         // 触发次数统计
         var stats = {};
 
         // 模板点击事件
-        templateBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
+        templateBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
                 if (isRolling) return;
                 var templateKey = this.getAttribute('data-template');
                 applyTemplate(templateKey);
             });
         });
+
+        function loadOptions() {
+            try {
+                var raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return [];
+                var saved = JSON.parse(raw);
+                if (!Array.isArray(saved)) return [];
+                return saved.filter(function (item) {
+                    return typeof item === 'string' && item.trim() !== '';
+                });
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveOptions() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(options));
+            } catch (e) {
+                /* 隐私模式 / 存储已满，忽略即可 */
+            }
+            // 改动之后旧的分享链接就过期了，顺手把 #o= 去掉
+            if ((window.location.hash || '').indexOf('#o=') === 0) {
+                try {
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                } catch (e) {
+                }
+            }
+        }
+
+        /* ---- 分享：把选项编码进 URL 的 #o=，不经过任何服务器 ---- */
+        function encodeShare(list) {
+            try {
+                var bytes = new TextEncoder().encode(JSON.stringify(list));
+                var bin = '';
+                bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+                return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function decodeShare(text) {
+            try {
+                var b64 = text.replace(/-/g, '+').replace(/_/g, '/');
+                while (b64.length % 4) b64 += '=';
+                var bin = atob(b64);
+                var bytes = new Uint8Array(bin.length);
+                for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                var list = JSON.parse(new TextDecoder().decode(bytes));
+                if (!Array.isArray(list)) return null;
+                list = list.filter(function (item) {
+                    return typeof item === 'string' && item.trim() !== '';
+                });
+                return list.length ? list.slice(0, 40) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function readHashOptions() {
+            var match = (window.location.hash || '').match(/^#o=(.+)$/);
+            return match ? decodeShare(decodeURIComponent(match[1])) : null;
+        }
+
+        function copyText(text, done) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+            } else {
+                fallbackCopy(text, done);
+            }
+        }
+
+        function fallbackCopy(text, done) {
+            var area = document.createElement('textarea');
+            area.value = text;
+            area.setAttribute('readonly', '');
+            area.style.position = 'fixed';
+            area.style.top = '0';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.select();
+            try {
+                document.execCommand('copy');
+            } catch (e) {
+                /* 复制失败也不打断流程，链接已经写进地址栏 */
+            }
+            document.body.removeChild(area);
+            done();
+        }
+
+        function shareOptions() {
+            var btn = document.getElementById('shareBtn');
+            var original = '分享这组选项';
+
+            if (options.length < 1) {
+                if (btn) btn.textContent = '先加几个选项';
+                setTimeout(function () { if (btn) btn.textContent = original; }, 1600);
+                return;
+            }
+
+            var encoded = encodeShare(options);
+            if (!encoded) return;
+
+            try {
+                history.replaceState(null, '', '#o=' + encoded);
+            } catch (e) {
+                /* 个别环境禁止改地址栏，链接本身仍然可用 */
+            }
+
+            copyText(window.location.origin + window.location.pathname + '#o=' + encoded, function () {
+                if (!btn) return;
+                btn.textContent = '链接已复制';
+                setTimeout(function () { btn.textContent = original; }, 1600);
+            });
+        }
 
         function applyTemplate(key) {
             var template = templates[key];
@@ -587,13 +704,14 @@
             options = template.options.slice();
             // 重置统计数据
             stats = {};
-            options.forEach(function(opt) { stats[opt] = 0; });
+            options.forEach(function (opt) { stats[opt] = 0; });
             resetResult();
             renderOptions();
             renderStats();
+            saveOptions();
 
             // 更新按钮状态
-            templateBtns.forEach(function(btn) {
+            templateBtns.forEach(function (btn) {
                 btn.classList.toggle('active', btn.getAttribute('data-template') === key);
             });
         }
@@ -603,14 +721,14 @@
                 statsList.innerHTML = '';
                 return;
             }
-            statsList.innerHTML = options.map(function(opt) {
+            statsList.innerHTML = options.map(function (opt) {
                 var count = stats[opt] || 0;
                 return '<li class="stats-item"><span class="stat-label">' + escapeHtml(opt) + '</span><span class="stat-count">' + count + '</span></li>';
             }).join('');
         }
 
         // 回车键添加选项
-        optionInput.addEventListener('keypress', function(e) {
+        optionInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 addOption();
             }
@@ -618,7 +736,7 @@
 
         function addOption() {
             if (isRolling) return;
-            const value = optionInput.value.trim();
+            var value = optionInput.value.trim();
             if (!value) return;
 
             options.push(value);
@@ -627,6 +745,7 @@
             optionInput.focus();
             renderOptions();
             renderStats();
+            saveOptions();
         }
 
         function removeOption(index) {
@@ -636,6 +755,7 @@
             renderOptions();
             renderStats();
             resetResult();
+            saveOptions();
         }
 
         function clearAll() {
@@ -645,41 +765,48 @@
             renderOptions();
             renderStats();
             resetResult();
+            saveOptions();
 
             // 清除模板选中状态
-            templateBtns.forEach(function(btn) {
+            templateBtns.forEach(function (btn) {
                 btn.classList.remove('active');
             });
         }
 
         function resetResult() {
             result.classList.remove('show', 'rolling', 'winner');
+            result.setAttribute('aria-busy', 'false');
             resultLabel.textContent = '';
             resultValue.textContent = '';
         }
 
         function renderOptions() {
             if (options.length === 0) {
-                optionsList.innerHTML = '<li class="empty-tip">还没有添加任何选项</li>';
+                optionsList.innerHTML = '<li class="empty-tip" id="emptyTip">还没有添加任何选项</li>';
                 optionCount.textContent = '';
                 return;
             }
 
-            optionCount.textContent = `共 ${options.length} 个选项`;
-            optionsList.innerHTML = options.map((opt, index) => `
-                <li>
-                    <span>${escapeHtml(opt)}</span>
-                    <button onclick="removeOption(${index})" title="删除">×</button>
-                </li>
-            `).join('');
+            optionCount.textContent = '共 ' + options.length + ' 个选项';
+            optionsList.innerHTML = options.map(function (opt, index) {
+                return '<li>' +
+                    '<span>' + escapeHtml(opt) + '</span>' +
+                    '<button class="opt-del" type="button" onclick="removeOption(' + index + ')" title="删除" aria-label="删除这个选项">' +
+                    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">' +
+                    '<path d="M6 6l12 12M18 6L6 18"/></svg>' +
+                    '</button>' +
+                    '</li>';
+            }).join('');
         }
 
         function randomSelect() {
             if (isRolling) return;
             if (options.length < 2) {
-                resultLabel.textContent = '';
+                resultLabel.textContent = '还差一点';
                 resultValue.textContent = '请至少添加 2 个选项';
-                result.classList.add('show', 'winner');
+                result.setAttribute('aria-busy', 'false');
+                result.classList.remove('rolling', 'winner');
+                result.classList.add('show');
                 return;
             }
 
@@ -688,15 +815,17 @@
             document.querySelector('.random-btn').disabled = true;
             document.querySelector('.clear-btn').disabled = true;
 
-            // 清除之前的状态
+            // 清除之前的状态；滚动期间对读屏软件静音，等结果出来再播报
+            result.setAttribute('aria-busy', 'true');
             result.classList.remove('winner');
             result.classList.add('show', 'rolling');
-            resultLabel.textContent = '🎰 正在选择...';
+            resultLabel.textContent = '正在选择…';
 
-            let count = 0;
-            const totalRolls = 20 + Math.floor(Math.random() * 15); // 20-35次滚动
-            const baseSpeed = 60;
-            let speed = baseSpeed;
+            var count = 0;
+            var totalRolls = 20 + Math.floor(Math.random() * 15); // 20-35次滚动
+            var baseSpeed = 60;
+            var speed = baseSpeed;
+            var rollInterval;
 
             function roll() {
                 resultValue.textContent = options[Math.floor(Math.random() * options.length)];
@@ -705,8 +834,8 @@
                 if (count >= totalRolls) {
                     // 结束滚动，显示结果
                     clearInterval(rollInterval);
-                    const finalIndex = Math.floor(Math.random() * options.length);
-                    const chosen = options[finalIndex];
+                    var finalIndex = Math.floor(Math.random() * options.length);
+                    var chosen = options[finalIndex];
                     resultValue.textContent = chosen;
 
                     // 记录触发次数
@@ -718,7 +847,8 @@
                     // 切换到结果状态
                     result.classList.remove('rolling');
                     result.classList.add('winner');
-                    resultLabel.textContent = '🎉 结果是';
+                    resultLabel.textContent = '结果是';
+                    result.setAttribute('aria-busy', 'false');
 
                     // 恢复按钮
                     document.querySelector('.random-btn').disabled = false;
@@ -738,14 +868,26 @@
                 rollInterval = setTimeout(roll, speed);
             }
 
-            let rollInterval;
             roll();
         }
 
         function escapeHtml(text) {
-            const div = document.createElement('div');
+            var div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // 页面载入时：优先用链接里带过来的选项，否则恢复上次的
+        options = readHashOptions() || loadOptions();
+        options.forEach(function (opt) {
+            if (stats[opt] === undefined) stats[opt] = 0;
+        });
+        renderOptions();
+        renderStats();
+
+        var shareBtn = document.getElementById('shareBtn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', shareOptions);
         }
     </script>
 
@@ -755,10 +897,12 @@
       "@type": "WebApplication",
       "name": "帮你决策 - 随机选择器",
       "url": "https://www.zhengqiao.wang/decision_maker.html",
-      "description": "随机选择器，支持石头剪刀布、CityWalk 随机挑战、是/否、掷骰子等多种场景。",
+      "description": "加几个候选项，让概率替你拍板。纯前端随机选择器，选项只保存在本机浏览器。",
       "applicationCategory": "GameApplication",
-      "operatingSystem": "Web"
+      "operatingSystem": "Web",
+      "isAccessibleForFree": true
     }
     </script>
 </body>
+
 </html>

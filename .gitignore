@@ -1,0 +1,7 @@
+# 设计阶段的本地方稿，只在本地留着当参考，不随站点发布
+redesign/
+
+# 系统 / 编辑器垃圾
+.DS_Store
+Thumbs.db
+desktop.ini
