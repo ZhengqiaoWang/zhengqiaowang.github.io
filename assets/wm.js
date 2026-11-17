@@ -73,6 +73,11 @@ function render() {
         const out = item.text && mode() === 'read'
             ? '<span class="file__out">「' + escapeHtml(item.text) + '」</span>'
             : '';
+        const err = item.error
+            ? (item.tone === 'bad'
+                ? '<span class="file__err" title="' + escapeHtml(item.rawError || item.error) + '">失败原因：' + escapeHtml(item.error) + '</span>'
+                : '<span class="file__err file__err--note">' + escapeHtml(item.error) + '</span>')
+            : '';
         const acts = [];
         if (item.out && isWrite) {
             acts.push('<button class="icon-btn" type="button" data-act="save" data-id="' + item.id + '" aria-label="下载这张" title="下载">' + icon('download') + '</button>');
@@ -88,6 +93,7 @@ function render() {
             + '<span class="file__name">' + escapeHtml(item.name) + '</span>'
             + '<span class="file__meta' + tone + '">' + escapeHtml(meta) + '</span>'
             + out
+            + err
             + '</span>'
             + '<span class="file__act">' + acts.join('') + '</span>'
             + '</li>';
@@ -153,11 +159,17 @@ async function probe(item) {
         item.width = bitmap.width;
         item.height = bitmap.height;
         bitmap.close();
-        const room = capacityBytes(item.width, item.height);
+
+        const big = item.width * item.height > MAX_PIXELS;
+        const target = scaledDims(item.width, item.height);
+        const room = capacityBytes(target.w, target.h);
         const need = utf8Len(wmText.value);
+
         if (mode() === 'write' && need > room) {
-            item.status = formatBytes(item.size) + ' · 太小，放不下';
+            item.status = formatBytes(item.size) + ' · 太小，放不下这段文字';
             item.tone = 'bad';
+        } else if (big) {
+            item.status = formatBytes(item.size) + ' · 太大，写入前会缩到 ' + target.w + '×' + target.h;
         } else {
             item.status = formatBytes(item.size) + ' · 待处理';
         }
@@ -167,6 +179,15 @@ async function probe(item) {
     }
     render();
     updateRunBtn();
+}
+
+/** 超过 1000 万像素的图，按比例缩到 900 万（留出让 wasm 喘气的余量）。 */
+const SCALE_TO = 9000000;
+
+function scaledDims(width, height) {
+    if (!width || !height || width * height <= MAX_PIXELS) return { w: width, h: height };
+    const scale = Math.sqrt(SCALE_TO / (width * height));
+    return { w: Math.max(1, Math.floor(width * scale)), h: Math.max(1, Math.floor(height * scale)) };
 }
 
 /* ---------------- 处理 ---------------- */
@@ -195,17 +216,18 @@ async function run() {
         if (!isWrite && item.text) { continue; } // 已经读过的跳过
 
         try {
-            const bytes = new Uint8Array(await item.file.arrayBuffer());
+            let bytes = new Uint8Array(await item.file.arrayBuffer());
+            let scaleNote = '';
 
             if (isWrite) {
-                if (item.width && item.height) {
-                    if (item.width * item.height > MAX_PIXELS) {
-                        throw new Error('图太大（超过 1000 万像素），先缩小再加');
-                    }
-                    const room = capacityBytes(item.width, item.height);
-                    if (utf8Len(text) > room) {
-                        throw new Error('放不下：这张图最多 ' + room + ' 字节，文字有 ' + utf8Len(text) + ' 字节');
-                    }
+                const target = scaledDims(item.width, item.height);
+                if (item.width && item.height && (target.w !== item.width || target.h !== item.height)) {
+                    bytes = await downscale(item.file, target.w, target.h);
+                    scaleNote = ' · 已缩到 ' + target.w + '×' + target.h;
+                }
+                const room = capacityBytes(target.w, target.h);
+                if (utf8Len(text) > room) {
+                    throw new Error('这张图最多放 ' + room + ' 字节，这段文字有 ' + utf8Len(text) + ' 字节 —— 换张更大的图，或者把字写短一点');
                 }
                 const out = await bwm.embed(bytes, text, ext);
                 const blob = new Blob([out], { type: MIME[ext] || 'image/png' });
@@ -213,27 +235,38 @@ async function run() {
                 item.out = blob;
                 item.outName = outputName(item.name, ext);
                 item.outUrl = URL.createObjectURL(blob);
-                item.status = formatBytes(item.size) + ' → ' + formatBytes(blob.size) + ' · 已写入';
+                item.status = formatBytes(item.size) + ' → ' + formatBytes(blob.size) + ' · 已写入' + scaleNote;
                 item.tone = 'ok';
                 item.error = '';
             } else {
-                const result = await bwm.extract(bytes);
-                if (!result) {
+                // 没有水印的图，wasm 内部会因为读不出长度而 abort —— 这是「没读到」，不是「处理失败」。
+                let result = null;
+                try {
+                    result = await bwm.extract(bytes);
+                } catch (e) {
+                    if (!isAbort(e)) throw e;
+                    result = null;
+                }
+                if (!result || !result.found) {
                     item.text = '';
                     item.status = formatBytes(item.size) + ' · 没有读到水印';
                     item.tone = '';
+                    item.rawError = '';
+                    item.error = '这张图里没有可读的水印（也可能是被缩放过、重新压缩过，那种情况下水印已经毁掉）';
                 } else {
                     const shown = result.text !== undefined ? result.text : '（二进制 ' + result.bytes.length + ' 字节）';
                     item.text = shown;
                     item.status = formatBytes(item.size) + (result.valid ? ' · 读到，校验通过' : ' · 读到，校验未通过');
                     item.tone = result.valid ? 'ok' : 'bad';
+                    item.rawError = '';
+                    item.error = '';
                 }
-                item.error = '';
             }
         } catch (e) {
             failed++;
             item.tone = 'bad';
             item.status = formatBytes(item.size) + ' · 失败';
+            item.rawError = (e && e.message) || String(e);
             item.error = friendlyError(e);
             item.text = '';
             item.out = null;
@@ -256,12 +289,33 @@ async function run() {
     }
 }
 
+function isAbort(error) {
+    const message = (error && error.message) || String(error);
+    return /Aborted/i.test(message);
+}
+
 function friendlyError(error) {
     const message = (error && error.message) || String(error);
-    if (/Aborted/i.test(message)) return '放不下：这张图的空间不够写这段文字';
-    if (/decode|invalid|not a valid/i.test(message)) return '这个文件打不开，可能不是图片';
-    if (/large|pixel/i.test(message)) return '图太大，先缩小再加';
+    if (/Aborted/i.test(message)) return '这张图的空间不够写这段文字（图太小或字太长）';
+    if (/decode|invalid|not a valid|unsupported/i.test(message)) return '这个文件打不开，可能是浏览器不认的格式（比如 AVIF / HEIC）';
+    if (/large|pixel|memory/i.test(message)) return '图太大，浏览器内存不够了，换张小一点的';
     return message;
+}
+
+/** 大图先缩到 900 万像素以内，中间格式用 PNG，避免多压一次。 */
+async function downscale(file, width, height) {
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    if (bitmap.close) bitmap.close();
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('缩小图片失败，这张图的尺寸可能过大');
+    return new Uint8Array(await blob.arrayBuffer());
 }
 
 function frame() {
