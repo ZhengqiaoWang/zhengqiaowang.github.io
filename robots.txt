@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Allow: /decision_maker.html
 Allow: /EarlyMortgageRepaymentCalculator.html
+Allow: /watermark.html
 
 Sitemap: https://www.zhengqiao.wang/sitemap.xml
