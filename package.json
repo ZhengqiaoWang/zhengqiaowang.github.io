@@ -1,0 +1,16 @@
+{
+  "name": "zhengqiaowang-gallery-tools",
+  "private": true,
+  "type": "module",
+  "description": "图库发布脚本：原片 → 压缩 → 盲水印 → 缩略图 → photos.json",
+  "scripts": {
+    "upload": "node scripts/gallery/server.mjs",
+    "build": "node scripts/gallery/build.mjs",
+    "deps": "npm install --no-audit --no-fund"
+  },
+  "dependencies": {
+    "exifr": "^7.1.3",
+    "exiftool-vendored": "^39.4.0",
+    "sharp": "^0.35.5"
+  }
+}

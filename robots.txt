@@ -3,5 +3,7 @@ Allow: /
 Allow: /decision_maker.html
 Allow: /EarlyMortgageRepaymentCalculator.html
 Allow: /watermark.html
+Allow: /gallery.html
+Allow: /assets/gallery/
 
 Sitemap: https://www.zhengqiao.wang/sitemap.xml

@@ -1,3 +1,11 @@
+# 依赖（只在本地发布照片时用，站点本身仍是纯静态）
+node_modules/
+
+# 发布脚本的临时文件
+scripts/gallery/.state.json
+scripts/gallery/.exif-list.txt
+scripts/gallery/.incoming/
+
 # 设计阶段的本地方稿，只在本地留着当参考，不随站点发布
 redesign/
 
@@ -5,3 +13,7 @@ redesign/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 临时调试用的目录（本地方稿、探针页、离线导出的 EXIF 缓存）
+.tmp-gallery-check/
+.tmp-probe/
