@@ -135,7 +135,7 @@ const routes = {
           setTimeout(() => rej(new Error('读照片信息超时：exiftool 60 秒没有回应')), 60000)
         ),
       ]);
-      const byPath = new Map(exif.map((m) => [path.basename(m.SourceFile || ''), m]));
+      const byPath = new Map(exif.filter(Boolean).map((m) => [path.basename(m.SourceFile || ''), m]));
       const out = saved.map((s) => {
         const meta = byPath.get(path.basename(s.p)) || {};
         let rec = null;
@@ -299,6 +299,13 @@ function friendlyError(e) {
   const msg = String((e && e.message) || e);
   if (/EPERM|spawn/i.test(msg)) {
     return '调不起来 exiftool：' + msg + '（终端里有完整堆栈）';
+  }
+  if (/allocation size overflow|out of memory|Cannot allocate/i.test(msg)) {
+    return '这张图太大了，内存装不下：' + msg
+      + '。100MP 以上的 TIFF / 拼接全景常见这个情况，先用 PS 或 Lightroom 导出成 JPG 再来。';
+  }
+  if (/unsupported image format|Input file contains unsupported/i.test(msg)) {
+    return '这个格式读不了（多半是 RAW）：' + msg + '，先导出成 JPG 再来。';
   }
   return msg;
 }

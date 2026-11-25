@@ -25,7 +25,10 @@ const EXIFR_OPTS = {
 /** 读一张：返回 { SourceFile, ...字段 }，失败返回 {} */
 async function readOne(file) {
   try {
-    const [buf, meta] = await Promise.all([readFile(file), sharp(file).metadata()]);
+    const [buf, meta] = await Promise.all([
+      readFile(file),
+      sharp(file, { limitInputPixels: false, failOn: 'none' }).metadata(),
+    ]);
     const exifr = (await import('exifr')).default;
     const raw = (await exifr.parse(buf, EXIFR_OPTS)) || {};
     return {

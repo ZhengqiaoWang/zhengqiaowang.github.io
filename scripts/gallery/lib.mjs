@@ -190,7 +190,7 @@ export async function processPhoto(raw, opts = {}) {
     const quality = opts.quality || 85;
     const text = opts.watermark || WATERMARK_TEXT;
 
-    const pre = await sharp(raw)
+    const pre = await sharp(raw, { limitInputPixels: false, failOn: 'none' })
         .rotate()                                  // 按 EXIF 方向摆正，之后 EXIF 全丢，GPS 也不会跟出去
         .resize({ width, height: width, fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality, mozjpeg: true })
@@ -206,7 +206,7 @@ export async function processPhoto(raw, opts = {}) {
         throw new Error('水印写入后读不回来');
     }
 
-    const thumb = await sharp(wm)
+    const thumb = await sharp(wm, { limitInputPixels: false, failOn: 'none' })
         .resize({ width: 720, withoutEnlargement: true })
         .webp({ quality: 76 })
         .toBuffer();
