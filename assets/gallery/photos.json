@@ -183,6 +183,50 @@
       "title": "雷峰塔与飞鸟"
     },
     {
+      "id": "2025-11-08-photo-01",
+      "src": "assets/gallery/2025-11-08-photo-01.jpg",
+      "thumb": "assets/gallery/2025-11-08-photo-01-t.webp",
+      "w": 1066,
+      "h": 1600,
+      "title": "云台山茱萸峰",
+      "city": "焦作市",
+      "date": "2025-11-08",
+      "hasGps": true,
+      "tags": [
+        "风光"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "85mm",
+      "f": "f/2.8",
+      "shutter": "1/400",
+      "iso": "ISO 80",
+      "collection": "风景",
+      "source": "c97f99aca7db566e3e3ee6c448061549342a94ca356f41a99cc770571776d5e0"
+    },
+    {
+      "id": "2025-11-08-photo-02",
+      "src": "assets/gallery/2025-11-08-photo-02.jpg",
+      "thumb": "assets/gallery/2025-11-08-photo-02-t.webp",
+      "w": 1600,
+      "h": 1066,
+      "title": "云台山云海",
+      "city": "焦作市",
+      "date": "2025-11-08",
+      "hasGps": true,
+      "tags": [
+        "风光"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "105mm",
+      "f": "f/4.5",
+      "shutter": "1/1300",
+      "iso": "ISO 80",
+      "collection": "风景",
+      "source": "410aed12eb8065a9a91d5d7fd52738e56c01364cc0d03fcf4f95553eb03c0cd9"
+    },
+    {
       "id": "2025-10-24-photo-01",
       "src": "assets/gallery/2025-10-24-photo-01.jpg",
       "thumb": "assets/gallery/2025-10-24-photo-01-t.webp",
@@ -337,6 +381,6 @@
       "source": "8c880d5adbe578d8cdd26f3a8483572422be0a13c78cf0b35b947e561dfd614a"
     }
   ],
-  "generatedAt": "2026-11-25T14:01:35.342Z",
+  "generatedAt": "2026-11-25T14:05:05.726Z",
   "watermark": "www.zhengqiao.wang"
 }
