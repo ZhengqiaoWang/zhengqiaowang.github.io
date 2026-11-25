@@ -1,0 +1,69 @@
+{
+  "photos": [
+    {
+      "id": "2025-10-24-photo-01",
+      "src": "assets/gallery/2025-10-24-photo-01.jpg",
+      "thumb": "assets/gallery/2025-10-24-photo-01-t.webp",
+      "w": 1600,
+      "h": 1066,
+      "city": "成都市",
+      "date": "2025-10-24",
+      "hasGps": false,
+      "tags": [
+        "文物"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "60mm",
+      "f": "f/2.8",
+      "shutter": "1/80",
+      "iso": "ISO 80",
+      "collection": "四川省",
+      "source": "ef2d38ad8b99e7764b535358a322fd06ac6a0a53b4626807df58c1971058c3bd"
+    },
+    {
+      "id": "2025-10-23-photo-01",
+      "src": "assets/gallery/2025-10-23-photo-01.jpg",
+      "thumb": "assets/gallery/2025-10-23-photo-01-t.webp",
+      "w": 1600,
+      "h": 687,
+      "city": "阿坝州",
+      "date": "2025-10-23",
+      "hasGps": false,
+      "tags": [
+        "风光"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "105mm",
+      "f": "f/4",
+      "shutter": "1/400",
+      "iso": "ISO 80",
+      "collection": "四川省",
+      "source": "9f7bbf7a597422fe0c86c2d5c86fe57070e1fe6b9349316d742e91a7008d0224"
+    },
+    {
+      "id": "2025-10-22-photo-01",
+      "src": "assets/gallery/2025-10-22-photo-01.jpg",
+      "thumb": "assets/gallery/2025-10-22-photo-01-t.webp",
+      "w": 1600,
+      "h": 1066,
+      "city": "阿坝州",
+      "date": "2025-10-22",
+      "hasGps": true,
+      "tags": [
+        "风光"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "37mm",
+      "f": "f/10",
+      "shutter": "1s",
+      "iso": "ISO 80",
+      "collection": "四川省",
+      "source": "d1f292014a5d119b53e17c81ce51d5bcf10de1c3e98d041f61ea2aea7b0d5bfa"
+    }
+  ],
+  "generatedAt": "2026-11-25T13:21:59.475Z",
+  "watermark": "www.zhengqiao.wang"
+}

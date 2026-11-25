@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图库上传</title>
+<style>
+  :root {
+    --paper: #f7f4ed; --paper-sunk: #f0ebe0; --paper-lit: #fffdf8;
+    --ink: #17140f; --ink-soft: #6b6357; --line: #ddd5c6; --line-strong: #c6bba6;
+    --accent: #a44d28; --accent-wash: rgba(164,77,40,.08); --ok: #3f6b46; --bad: #8f3427;
+    --sans: "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", system-ui, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+    --radius: 3px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14120e; --paper-sunk: #1c1913; --paper-lit: #221f18;
+      --ink: #ece5d8; --ink-soft: #a49a8b; --line: #2e2a22; --line-strong: #453f33;
+      --accent: #d98a5c; --accent-wash: rgba(217,138,92,.12); --ok: #7fae85; --bad: #d98a7c;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper); color: var(--ink); font: 15px/1.6 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 96px; }
+  h1 { font-size: 28px; font-weight: 600; letter-spacing: .02em; margin: 0 0 8px; }
+  .lede { color: var(--ink-soft); margin: 0 0 8px; max-width: 62ch; }
+  .meta { font: 12px/1.5 var(--mono); color: var(--ink-soft); letter-spacing: .02em; margin: 0 0 32px; }
+
+  .drop {
+    border: 1px dashed var(--line-strong); border-radius: var(--radius);
+    background: var(--paper-sunk); padding: 44px 24px; text-align: center;
+    transition: border-color .15s, background .15s;
+  }
+  .drop[data-over] { border-color: var(--accent); background: var(--accent-wash); }
+  .drop__title { font-size: 16px; margin: 0 0 6px; }
+  .drop__sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; }
+  .drop__acts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  .btn {
+    appearance: none; border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+    font: 15px/1 var(--sans); padding: 11px 20px; border-radius: var(--radius); cursor: pointer;
+  }
+  .btn:hover { opacity: .88; }
+  .btn--quiet { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+  .btn--quiet:hover { border-color: var(--ink); opacity: 1; }
+  .btn[disabled] { opacity: .4; cursor: default; }
+  .btn--small { padding: 7px 12px; font-size: 14px; }
+
+  .panel { margin-top: 28px; }
+  .panel[hidden] { display: none; }
+  .field { display: grid; grid-template-columns: 88px 1fr; gap: 12px; align-items: start; margin-bottom: 18px; }
+  .field > label, .field > span { padding-top: 9px; font-size: 14px; color: var(--ink-soft); }
+  input[type=text], input[type=number] {
+    font: 15px/1.4 var(--sans); color: var(--ink); background: var(--paper-lit);
+    border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 9px 12px; width: 100%;
+  }
+  input[type=text]:focus, input[type=number]:focus { outline: 2px solid var(--accent-wash); border-color: var(--accent); }
+  .hint { font-size: 13px; color: var(--ink-soft); margin: 6px 0 0; }
+  .hint code { font-family: var(--mono); font-size: 12px; background: var(--paper-sunk); padding: 1px 5px; border-radius: 2px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip {
+    font: 13px/1 var(--sans); padding: 6px 10px; border-radius: 100px;
+    border: 1px solid var(--line-strong); background: transparent; color: var(--ink-soft); cursor: pointer;
+    display: inline-flex; gap: 6px; align-items: center;
+  }
+  .chip:hover { border-color: var(--ink-soft); color: var(--ink); }
+  .chip b { font-weight: 500; color: var(--ink); }
+  .chip em { font-style: normal; font: 11px/1 var(--mono); opacity: .7; }
+  .chip[data-on] { border-color: var(--accent); color: var(--accent); }
+
+  .list { margin-top: 28px; border-top: 1px solid var(--line); }
+  .row {
+    display: grid; grid-template-columns: 56px minmax(0,1fr) 132px 96px 1fr;
+    gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .row__thumb { width: 56px; height: 42px; object-fit: cover; background: var(--paper-sunk); border-radius: 2px; display: block; }
+  .row__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row__state { color: var(--ink-soft); }
+  .row[data-state=ok] .row__state { color: var(--ok); }
+  .row[data-state=fail] .row__state { color: var(--bad); }
+  .row[data-state=skip] .row__state { color: var(--ink-soft); }
+  .row__exif { font: 12px/1.5 var(--mono); color: var(--ink-soft); }
+  .row__cells { display: flex; gap: 10px; align-items: center; }
+  .row__del {
+    border: 0; background: transparent; color: var(--ink-soft); cursor: pointer;
+    font: 14px/1 var(--sans); padding: 6px; border-radius: var(--radius);
+    opacity: .55; transition: opacity .15s, color .15s;
+  }
+  .row__del:hover { opacity: 1; color: var(--bad); background: var(--accent-wash); }
+  .row__del:focus-visible { opacity: 1; outline: 2px solid var(--accent); outline-offset: 1px; }
+  .row select {
+    font: 13px/1.4 var(--sans); padding: 5px 8px; border: 1px solid var(--line-strong);
+    border-radius: var(--radius); background: var(--paper-lit); color: var(--ink); max-width: 130px;
+  }
+  .row[data-state=fail] { background: var(--accent-wash); }
+
+  .bar { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 20px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  .status { font: 13px/1.6 var(--mono); color: var(--ink-soft); margin-top: 10px; min-height: 22px; }
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 24px; flex-wrap: wrap; }
+  .actions__note { font-size: 13px; color: var(--ink-soft); }
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: var(--radius);
+    font-size: 14px; max-width: min(560px, 92vw); z-index: 20;
+  }
+  .toast[hidden] { display: none; }
+  .toast[data-bad] { background: var(--bad); color: #fff; }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 24px 16px 72px; }
+    .field { grid-template-columns: 1fr; gap: 6px; }
+    .field > label, .field > span { padding-top: 0; }
+    .row { grid-template-columns: 44px minmax(0,1fr) 88px; row-gap: 6px; }
+    .row__thumb { width: 44px; height: 34px; }
+    .row__exif { grid-column: 2 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>图库上传</h1>
+  <p class="lede">选中原片，填好标签和相册，点开始处理。图片会自动压到 1600px、写上盲水印、读一遍确认读得回来，再存进仓库。</p>
+  <p class="meta" id="meta">正在读取图库…</p>
+
+  <div class="drop" id="drop">
+    <p class="drop__title">把原片拖进来</p>
+    <p class="drop__sub">JPG / PNG / TIFF / HEIC，可整个文件夹拖。原片不会被改动。</p>
+    <div class="drop__acts">
+      <button class="btn" id="pick">选择照片</button>
+      <button class="btn btn--quiet" id="pickDir">选择整个文件夹</button>
+    </div>
+    <input type="file" id="fileInput" accept="image/*,.heic,.heif" multiple hidden>
+    <input type="file" id="dirInput" webkitdirectory directory multiple hidden>
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="field">
+      <label for="tags">标签</label>
+      <div>
+        <input type="text" id="tags" placeholder="风光, 长曝, 秋色">
+        <p class="hint">用逗号分隔，这一批照片共用。下面有以前用过的，点一下就填上。</p>
+        <div class="chips" id="tagHist"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="album">相册</label>
+      <div>
+        <input type="text" id="album" placeholder="四川省 · 成都重庆阿坝州">
+        <p class="hint">就是这一趟的名字，会记在 JSON 的 <code>collection</code> 字段里，不参与筛选。</p>
+        <div class="chips" id="albumHist"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <span>城市</span>
+      <div>
+        <input type="text" id="city" placeholder="留空 = 按 GPS 自动判断，没有 GPS 就是「待定」">
+        <p class="hint">填了就整批都用这个城市。想分别填，处理完直接改 <code>photos.json</code> 就行，不用重跑。</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="shift">时间校正</label>
+      <div>
+        <input type="number" id="shift" value="0" step="1" min="-12" max="14">
+        <p class="hint">相机时钟如果是 UTC（常见），填 <code>8</code> 换成北京时间。填 0 就是按相机写的原时间。</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="scan" disabled>读取照片信息</button>
+      <button class="btn btn--quiet btn--small" id="clearAll" hidden>清空列表</button>
+      <span class="actions__note" id="pickNote">还没选照片</span>
+    </div>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <div class="bar" id="bar" hidden><i></i></div>
+  <div class="status" id="status"></div>
+
+  <div class="actions" id="go" hidden>
+    <button class="btn" id="publish">开始处理</button>
+    <span class="actions__note" id="goNote"></span>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const TOKEN = '__TOKEN__';
+  const $ = (s) => document.querySelector(s);
+
+  const state = { files: [], rows: [], meta: null, busy: false };
+
+  /* ---------- 小工具 ---------- */
+
+  const toast = (msg, bad) => {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.dataset.bad = bad ? '1' : '';
+    t.hidden = false;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { t.hidden = true; }, 4200);
+  };
+
+  const api = async (path, opt = {}) => {
+    const res = await fetch(path, {
+      ...opt,
+      headers: { 'content-type': 'application/json', 'x-gallery-token': TOKEN, ...(opt.headers || {}) },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `请求失败 ${res.status}`);
+    return data;
+  };
+
+  const readAsB64 = (file) => new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result).split(',')[1] || '');
+    fr.onerror = () => reject(fr.error);
+    fr.readAsDataURL(file);
+  });
+
+  const BATCH = 6;
+
+  /**
+   * 按 BATCH 张一批上送，边读边更新进度，最后把所有结果拼起来。
+   * 一批失败不影响前面已读出的结果，直接抛给调用方。
+   */
+  const scanInBatches = async (files, onProgress) => {
+    const out = [];
+    for (let i = 0; i < files.length; i += BATCH) {
+      const chunk = files.slice(i, i + BATCH);
+      const payload = [];
+      for (const [j, f] of chunk.entries()) {
+        onProgress(i + j + 1, files.length, f.name);
+        payload.push({ name: f.name, data: await readAsB64(f) });
+      }
+      onProgress(i + chunk.length, files.length, '让 exiftool 看一眼…');
+      const r = await api('/api/exif', { method: 'POST', body: JSON.stringify(payload) });
+      out.push(...r.files);
+    }
+    return out;
+  };
+
+  const sizeText = (n) => n >= 1024 * 1024 ? (n / 1048576).toFixed(1) + 'MB' : Math.round(n / 1024) + 'KB';
+
+  /* ---------- 缩略图 ---------- */
+
+  const thumbCache = new WeakMap();
+  const thumbUrl = (file) => {
+    let u = thumbCache.get(file);
+    if (!u) {
+      u = URL.createObjectURL(file);
+      thumbCache.set(file, u);
+    }
+    return u;
+  };
+
+  /* ---------- 选照片 ---------- */
+
+  const takeFiles = (list) => {
+    const picked = [];
+    for (const f of list) {
+      if (!/\.(jpe?g|png|webp|tiff?|heic|heif)$/i.test(f.name)) continue;
+      if (f.name.startsWith('.')) continue;
+      picked.push(f);
+    }
+    if (!picked.length) { toast('这些文件里没有能用的图片', true); return; }
+    const seen = new Set(state.files.map((f) => f.name + f.size));
+    for (const f of picked) if (!seen.has(f.name + f.size)) state.files.push(f);
+    $('#panel').hidden = false;
+    // 列表变了，上次读出来的结果作废，得重新读一次
+    state.rows = [];
+    $('#go').hidden = true;
+    $('#status').textContent = '';
+    syncCount();
+    // 选完立刻把缩略图和文件名排出来，EXIF 等点了「读取照片信息」再补
+    paintList();
+  };
+
+  $('#clearAll').onclick = () => clearAll();
+
+  $('#pick').onclick = () => $('#fileInput').click();
+  $('#pickDir').onclick = () => $('#dirInput').click();
+  $('#fileInput').onchange = (e) => takeFiles(e.target.files);
+  $('#dirInput').onchange = (e) => takeFiles(e.target.files);
+
+  const drop = $('#drop');
+  ['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => {
+    e.preventDefault(); drop.dataset.over = '1';
+  }));
+  ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, (e) => {
+    e.preventDefault(); drop.dataset.over = '';
+  }));
+  drop.addEventListener('drop', (e) => {
+    const items = e.dataTransfer?.items;
+    if (items && items.length && items[0].webkitGetAsEntry) {
+      // 拖文件夹进来时递归取文件
+      const all = [];
+      const walk = (entry) => new Promise((resolve) => {
+        if (entry.isFile) entry.file((f) => { all.push(f); resolve(); }, resolve);
+        else if (entry.isDirectory) {
+          const reader = entry.createReader();
+          const readAll = () => reader.readEntries(async (batch) => {
+            if (!batch.length) return resolve();
+            for (const en of batch) await walk(en);
+            readAll();
+          }, resolve);
+          readAll();
+        } else resolve();
+      });
+      Promise.all([...items].map((it) => {
+        const entry = it.webkitGetAsEntry && it.webkitGetAsEntry();
+        return entry ? walk(entry) : Promise.resolve();
+      })).then(() => takeFiles(all));
+      return;
+    }
+    takeFiles(e.dataTransfer.files);
+  });
+
+  /* ---------- 历史标签 / 相册 ---------- */
+
+  const paintHistory = (meta) => {
+    $('#meta').textContent = `库里现在 ${meta.count} 张 · 图片写进 ${meta.outDir} · 水印 ${meta.watermark}`;
+
+    const tagHist = $('#tagHist');
+    tagHist.innerHTML = '';
+    for (const t of meta.tags.slice(0, 14)) {
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.type = 'button';
+      b.innerHTML = `<b></b><em></em>`;
+      b.querySelector('b').textContent = t.name;
+      b.querySelector('em').textContent = t.n;
+      b.onclick = () => {
+        const box = $('#tags');
+        const cur = box.value.split(/[,，]/).map((s) => s.trim()).filter(Boolean);
+        if (cur.includes(t.name)) box.value = cur.filter((x) => x !== t.name).join(', ');
+        else box.value = [...cur, t.name].join(', ');
+      };
+      tagHist.append(b);
+    }
+    if (!meta.tags.length) tagHist.innerHTML = '<span class="hint">还没有用过的标签。</span>';
+
+    const albumHist = $('#albumHist');
+    albumHist.innerHTML = '';
+    for (const a of meta.albums.slice(0, 8)) {
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.type = 'button';
+      b.textContent = a;
+      b.onclick = () => { $('#album').value = a; };
+      albumHist.append(b);
+    }
+    albumHist.hidden = !meta.albums.length;
+  };
+
+  api('/api/meta?t=' + encodeURIComponent(TOKEN))
+    .then((meta) => { state.meta = meta; paintHistory(meta); })
+    .catch((e) => { $('#meta').textContent = '读不到图库信息：' + e.message; });
+
+  /* ---------- 读取 EXIF ---------- */
+
+  $('#scan').onclick = async () => {
+    if (state.busy) return;
+    state.busy = true;
+    $('#scan').disabled = true;
+    const bar = $('#bar');
+    bar.hidden = false;
+    const status = $('#status');
+    const plain = state.files.map((f) => ({ name: f.name, data: null }));
+
+    try {
+      const files = await scanInBatches(state.files, (n, total, name) => {
+        status.textContent = `读取 ${n} / ${total}：${name}`;
+      });
+      const r = { files };
+      state.rows = r.files;
+
+      const cities = [...new Set(r.files.map((f) => f.city).filter((c) => c && c !== '待定'))];
+      if (cities.length === 1 && !$('#city').value) $('#city').placeholder = `留空 = 自动判断（这批像是「${cities[0]}」）`;
+
+      paintList();
+      const bad = r.files.filter((f) => !f.ok).length;
+      status.textContent = bad
+        ? `读到 ${r.files.length} 张，其中 ${bad} 张没有拍摄时间，处理时会被跳过。`
+        : `读到 ${r.files.length} 张，都可以处理。`;
+      $('#go').hidden = false;
+      $('#goNote').textContent = '处理完会把图片写进仓库，photos.json 自动更新。';
+    } catch (e) {
+      status.textContent = '';
+      toast('读取失败：' + e.message, true);
+    } finally {
+      state.busy = false;
+      $('#scan').disabled = false;
+      bar.hidden = true;
+      void plain;
+    }
+  };
+
+  /* ---------- 移除单张 / 清空 ---------- */
+
+  const syncCount = () => {
+    const n = state.files.length;
+    $('#pickNote').textContent = n ? `已选 ${n} 张` : '还没选照片';
+    $('#clearAll').hidden = !n;
+    $('#scan').disabled = state.busy || !n;
+  };
+
+  /** 从待处理列表里拿掉一张：文件和它的读取结果都删，已写入的不动 */
+  const removeFile = (name) => {
+    if (state.busy) return;
+    state.files = state.files.filter((f) => f.name !== name);
+    state.rows = state.rows.filter((r) => r.name !== name);
+    paintList();
+    syncCount();
+    if (!state.files.length) {
+      $('#list').innerHTML = '';
+      $('#go').hidden = true;
+      $('#status').textContent = '';
+      $('#panel').hidden = true;
+    }
+  };
+
+  const clearAll = () => {
+    if (state.busy || !state.files.length) return;
+    const n = state.files.length;
+    state.files = [];
+    state.rows = [];
+    $('#list').innerHTML = '';
+    $('#panel').hidden = true;
+    $('#go').hidden = true;
+    $('#status').textContent = '';
+    $('#fileInput').value = '';
+    $('#dirInput').value = '';
+    syncCount();
+    toast(`已清空 ${n} 张`);
+  };
+
+  /* ---------- 列表 ---------- */
+
+  /**
+   * 列表 = 已选但还没读 EXIF 的文件（pending）+ 读完的 rows。
+   * pending 行只有缩略图、文件名、大小，读完后被 rows 里的同名列替换。
+   */
+  const pendingRows = () => {
+    const known = new Set(state.rows.map((r) => r.name));
+    return state.files
+      .filter((f) => !known.has(f.name))
+      .map((f) => ({ pending: true, name: f.name, size: f.size }));
+  };
+
+  const paintList = () => {
+    const list = $('#list');
+    if (!list) return;
+    list.innerHTML = '';
+    const all = pendingRows().concat(state.rows);
+    for (const [i, f] of all.entries()) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.dataset.state = f.pending ? '' : f.ok ? '' : 'fail';
+
+      const img = document.createElement('img');
+      img.className = 'row__thumb';
+      img.alt = '';
+      // 直接拿页面上刚选的原文件做缩略图，不额外传一轮
+      const src = state.files.find((x) => x.name === f.name);
+      if (src) img.src = thumbUrl(src);
+
+      const name = document.createElement('div');
+      name.className = 'row__name';
+      name.textContent = f.name;
+      name.title = f.name;
+
+      const when = document.createElement('div');
+      when.className = 'row__exif';
+      when.textContent = f.pending ? '未读取' : f.ok ? `${f.date} · ${f.city}` : '没有拍摄时间';
+
+      const parts = document.createElement('div');
+      parts.className = 'row__exif';
+      parts.textContent = f.pending
+        ? sizeText(f.size)
+        : f.ok
+          ? [f.focal, f.f, f.shutter, f.iso].filter(Boolean).join(' · ')
+          : sizeText(f.size);
+
+      const stateCell = document.createElement('div');
+      stateCell.className = 'row__state';
+      stateCell.textContent = f.pending ? '待读取' : f.ok ? '待处理' : '跳过';
+      stateCell.dataset.cell = String(i);
+
+      const cells = document.createElement('div');
+      cells.className = 'row__cells';
+      cells.append(stateCell);
+
+      row.append(img, name, when, parts, cells);
+      list.append(row);
+    }
+  };
+
+  /* ---------- 处理 ---------- */
+
+  $('#publish').onclick = async () => {
+    if (state.busy || !state.rows.length) return;
+    const ok = state.rows.filter((r) => r.ok);
+    if (!ok.length) return toast('没有可以处理的照片', true);
+
+    state.busy = true;
+    $('#publish').disabled = true;
+    $('#scan').disabled = true;
+    const bar = $('#bar');
+    bar.hidden = false;
+    const fill = bar.querySelector('i');
+    const status = $('#status');
+
+    const tags = $('#tags').value.split(/[,，]/).map((s) => s.trim()).filter(Boolean);
+    const album = $('#album').value.trim();
+    const city = $('#city').value.trim();
+    const shift = Number($('#shift').value) || 0;
+
+    let added = 0, skipped = 0, failed = 0;
+    try {
+      for (const [i, r] of ok.entries()) {
+        status.textContent = `处理中 ${i + 1} / ${ok.length}：${r.name}`;
+        fill.style.width = `${Math.round((i / ok.length) * 100)}%`;
+
+        const src = state.files.find((x) => x.name === r.name);
+        const data = await readAsB64(src);
+        const out = await api('/api/publish', {
+          method: 'POST',
+          body: JSON.stringify({ files: [{ name: r.name, data }], tags, album, city, shift }),
+        });
+        const one = out.results[0];
+        const cell = document.querySelector(`[data-cell="${state.rows.indexOf(r)}"]`);
+        if (cell) {
+          cell.textContent = one.status === 'ok' ? '已写入 ' + one.id : one.status === 'skip' ? '已在库里' : '失败';
+          cell.closest('.row').dataset.state = one.status;
+        }
+        if (one.status === 'ok') added++;
+        else if (one.status === 'skip') skipped++;
+        else { failed++; toast(`${r.name}：${one.note || '处理失败'}`, true); }
+      }
+      fill.style.width = '100%';
+      status.textContent = `完成：新增 ${added} 张`
+        + (skipped ? `，跳过 ${skipped} 张（已在库里）` : '')
+        + (failed ? `，失败 ${failed} 张` : '')
+        + `。库里现在 ${state.meta ? state.meta.count + added : '?'} 张。`;
+      toast('写进仓库了，记得 git commit && push');
+
+      const meta = await api('/api/meta?t=' + encodeURIComponent(TOKEN));
+      state.meta = meta;
+      paintHistory(meta);
+    } catch (e) {
+      status.textContent = '';
+      toast('处理中断：' + e.message, true);
+    } finally {
+      state.busy = false;
+      $('#publish').disabled = false;
+      // 处理过的文件自动离开列表，剩下的继续可用
+      const done = new Set(ok.map((r) => r.name));
+      state.files = state.files.filter((f) => !done.has(f.name));
+      state.rows = state.rows.filter((r) => !done.has(r.name));
+      paintList();
+      syncCount();
+      if (!state.files.length) $('#go').hidden = true;
+    }
+  };
+})();
+</script>
+</body>
+</html>
