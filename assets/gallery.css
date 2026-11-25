@@ -259,12 +259,29 @@
     opacity: 1;
 }
 
-/* 网格上只露日期；地点在宽屏跟在后面，手机上省掉 */
+/* 卡片说明：第一行作品名，第二行「日期 / 城市」 */
 .shot__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 6px;
+    min-width: 0;
+}
+
+.shot__title {
+    font-family: var(--serif);
+    font-size: var(--fs-sm);
+    line-height: 1.35;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shot__sub {
     display: flex;
     align-items: center;
     gap: var(--sp-2);
-    padding-top: 5px;
     font-family: var(--mono);
     font-size: var(--fs-meta);
     color: var(--ink-soft);
@@ -325,6 +342,10 @@
 
 /* ================= 灯箱 ================= */
 dialog.lightbox {
+    /* 显式居中：不管祖先有没有 transform，都不能让它跑到左上角 */
+    position: fixed;
+    inset: 0;
+    margin: auto;
     border: 0;
     padding: 0;
     background: var(--paper);
@@ -511,6 +532,14 @@ dialog.lightbox::backdrop {
 }
 
 @media (max-width: 620px) {
+    .shot__title {
+        font-size: var(--fs-meta);
+    }
+
+    .shot__sub {
+        font-size: 11px;
+    }
+
     .page--gallery .page-lede {
         font-size: var(--fs-sm);
         line-height: 1.7;
@@ -529,9 +558,7 @@ dialog.lightbox::backdrop {
         width: 2.6em;
     }
 
-    .shot__place,
-    .shot__sep {
-        display: none;
+    /* 手机上日期和城市还能挤下，就不藏了 */
     }
 
     .shot__meta {

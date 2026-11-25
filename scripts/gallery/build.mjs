@@ -49,6 +49,7 @@ function parseArgs(argv) {
     else if (a === '--watermark') out.watermark = next();
     else if (a === '--shift') out.shift = Number(next());
     else if (a === '--city') out.city = next();
+    else if (a === '--title') out.title = next();
     else if (a === '--dry') out.dry = true;
     else if (a === '--force') out.force = true;
     else if (a === '--exif') out.exif = next();
@@ -79,6 +80,7 @@ if (args.help || !args.src) {
   --dry            不写文件，只测体积和耗时
   --force          已存在的图片也重新生成
   --exif <file>    用已有的 exiftool JSON 代替现读（离线/受限环境用）
+  --title <名称>   作品名（比如「三星堆黄金面具」），网格和灯箱都会显示；不填就用「城市 · 日期」
   --album <名称>   相册名，会成为 photos.json 里的 collection 字段`);
   process.exit(args.help ? 0 : 1);
 }
@@ -137,7 +139,9 @@ async function main() {
 
     try {
       // 1) 元数据：时间、城市、相机、镜头 —— 和本地网页上传走同一个函数
-      const rec = makeRecord(meta, { tags: args.tags, album: args.album, city: args.city, shift: args.shift });
+      const rec = makeRecord(meta, {
+        tags: args.tags, album: args.album, city: args.city, shift: args.shift, title: args.title,
+      });
       const base = `${rec.date}-${slug(rec.city) || 'photo'}`;
 
       let seq = 1;

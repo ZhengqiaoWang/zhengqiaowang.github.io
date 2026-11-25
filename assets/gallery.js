@@ -16,6 +16,11 @@
 
     var fmtDate = function (d) { return String(d || '').replace(/-/g, '.'); };
 
+    // 作品名；没填就退回「城市 · 日期」
+    function titleOf(p) {
+        return (p.title && String(p.title).trim()) || (p.city + ' ' + fmtDate(p.date));
+    }
+
     /* ---------- 筛选 ---------- */
     // skipKind / skipValue：算某个选项的「还有多少张」时，跳过它自己那一维
     function match(p, skipKind, skipValue) {
@@ -122,11 +127,11 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'shot__btn';
-        btn.setAttribute('aria-label', p.city + ' ' + fmtDate(p.date) + '，查看大图与拍摄信息');
+        btn.setAttribute('aria-label', titleOf(p) + '，' + fmtDate(p.date) + ' 摄于' + p.city + '，查看大图与拍摄信息');
 
         var img = document.createElement('img');
         img.className = 'shot__img';
-        img.alt = p.city + ' ' + fmtDate(p.date);
+        img.alt = titleOf(p);
         img.loading = 'lazy';
         img.decoding = 'async';
         img.width = p.w;
@@ -147,19 +152,28 @@
         badge.textContent = p.tags.map(function (t) { return '#' + t; }).join(' ');
 
         btn.append(img, badge);
-        btn.addEventListener('click', function () { openLightbox(p); });
+        btn.addEventListener('click', function (e) {
+            if (e.currentTarget !== btn) return;
+            openLightbox(p);
+        });
 
         var meta = document.createElement('div');
         meta.className = 'shot__meta';
+        var cap = document.createElement('div');
+        cap.className = 'shot__title';
+        cap.textContent = titleOf(p);
+        var sub = document.createElement('div');
+        sub.className = 'shot__sub';
         var d = document.createElement('span');
-        d.textContent = fmtDate(p.date).slice(5);
+        d.textContent = fmtDate(p.date);
         var sep = document.createElement('span');
         sep.className = 'shot__sep';
         sep.textContent = '/';
         var place = document.createElement('span');
         place.className = 'shot__place';
         place.textContent = p.city;
-        meta.append(d, sep, place);
+        sub.append(d, sep, place);
+        meta.append(cap, sub);
 
         fig.append(btn, meta);
         return fig;
@@ -223,15 +237,35 @@
     var lb, current = null;
 
     function openLightbox(p) {
+        // 被点的照片一定存在于某个列表里；以它所在的列表为准，翻页才不会串到别的片
+        var inList = list.findIndex(function (x) { return x.id === p.id; });
+        if (inList < 0) {
+            // 极端情况（重新渲染时对象被换掉）：用 id 对齐回当前列表
+            var same = list.find(function (x) { return x.id === p.id; });
+            if (same) p = same;
+            inList = list.findIndex(function (x) { return x.id === p.id; });
+        }
         current = p;
-        var i = list.findIndex(function (x) { return x.id === p.id; });
-        el('lbIdx').textContent = String(i + 1).padStart(2, '0') + ' / ' + String(list.length).padStart(2, '0');
+        var i = inList;
+        if (i < 0) i = photos.findIndex(function (x) { return x.id === p.id; });
+        var total = inList >= 0 ? list.length : photos.length;
+        el('lbIdx').textContent =
+            (i < 0 ? '—' : String(i + 1).padStart(2, '0')) + ' / ' + String(total).padStart(2, '0');
 
         var img = el('lbImg');
-        img.src = p.src;
-        img.alt = p.city + ' ' + fmtDate(p.date);
-        el('lbWhere').textContent = p.city;
-        el('lbWhen').textContent = fmtDate(p.date);
+        img.dataset.pid = p.id;
+        // 先挂缩略图（一般已在缓存里），原图下载完再换上去，避免大图白屏一下
+        img.src = p.thumb;
+        var full = new Image();
+        full.decoding = 'async';
+        full.addEventListener('load', function () {
+          // 期间可能已经翻页了，别把旧图塞回去
+          if (el('lbImg').dataset.pid === p.id) el('lbImg').src = p.src;
+        });
+        full.src = p.src;
+        img.alt = titleOf(p);
+        el('lbWhere').textContent = titleOf(p);
+        el('lbWhen').textContent = fmtDate(p.date) + ' · ' + p.city;
 
         var rows = [
             ['机身', p.camera],
@@ -272,13 +306,19 @@
         }
         tags.hidden = !p.tags.length;
 
-        if (!lb.open) lb.showModal();
+        if (!lb.open) {
+            lb.showModal();
+            lb.scrollTop = 0;
+        }
     }
 
     function step(dir) {
-        if (!list.length || !current) return;
-        var i = list.findIndex(function (x) { return x.id === current.id; });
-        openLightbox(list[(i + dir + list.length) % list.length]);
+        if (!current) return;
+        var seq = list.length ? list : photos;
+        if (!seq.length) return;
+        var i = seq.findIndex(function (x) { return x.id === current.id; });
+        if (i < 0) i = 0;
+        openLightbox(seq[(i + dir + seq.length) % seq.length]);
     }
 
     function bindLightbox() {

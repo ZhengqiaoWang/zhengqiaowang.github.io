@@ -1,6 +1,188 @@
 {
   "photos": [
     {
+      "id": "2026-10-05-photo-01",
+      "src": "assets/gallery/2026-10-05-photo-01.jpg",
+      "thumb": "assets/gallery/2026-10-05-photo-01-t.webp",
+      "w": 1600,
+      "h": 1066,
+      "city": "郑州市",
+      "date": "2026-10-05",
+      "hasGps": true,
+      "tags": [
+        "飞机"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "105mm",
+      "f": "f/3.2",
+      "shutter": "1/2500",
+      "iso": "ISO 80",
+      "collection": "鸟",
+      "source": "9823e49162cb4a1a725c9dd939e03f15e1b95039b400f610e285fc6575322865",
+      "title": "打铁鸟"
+    },
+    {
+      "id": "2026-09-19-photo-01",
+      "src": "assets/gallery/2026-09-19-photo-01.jpg",
+      "thumb": "assets/gallery/2026-09-19-photo-01-t.webp",
+      "w": 1066,
+      "h": 1600,
+      "city": "大连市",
+      "date": "2026-09-19",
+      "hasGps": true,
+      "tags": [
+        "鸟"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "105mm",
+      "f": "f/5.6",
+      "shutter": "1/1600",
+      "iso": "ISO 80",
+      "collection": "鸟",
+      "source": "be85f0793be7a32ba260b2c48cc9ad0934319cb88ee93776a3c2b4ddbeb18694",
+      "title": "海鸥：来码头捞个香肠"
+    },
+    {
+      "id": "2026-04-25-photo-01",
+      "src": "assets/gallery/2026-04-25-photo-01.jpg",
+      "thumb": "assets/gallery/2026-04-25-photo-01-t.webp",
+      "w": 1065,
+      "h": 1600,
+      "city": "杭州市",
+      "date": "2026-04-25",
+      "hasGps": true,
+      "tags": [
+        "风光",
+        "自然"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "105mm",
+      "f": "f/6.3",
+      "shutter": "1/250",
+      "iso": "ISO 80",
+      "collection": "风景",
+      "source": "9bca96f42ae7f5ba6e3d873814b7f6cbf42c605b30f61896f87ebce9dca37784",
+      "title": "西湖游船"
+    },
+    {
+      "id": "2026-04-24-photo-01",
+      "src": "assets/gallery/2026-04-24-photo-01.jpg",
+      "thumb": "assets/gallery/2026-04-24-photo-01-t.webp",
+      "w": 1200,
+      "h": 1600,
+      "city": "杭州市",
+      "date": "2026-04-24",
+      "hasGps": true,
+      "tags": [
+        "动物",
+        "自然"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "105mm",
+      "f": "f/2.8",
+      "shutter": "1/400",
+      "iso": "ISO 80",
+      "collection": "松鼠",
+      "source": "e7f80f4a6a81335dd8d6d76765197b902a9bd578cd8768f666b2829772dc7c7f",
+      "title": "松鼠啃果"
+    },
+    {
+      "id": "2026-04-24-photo-02",
+      "src": "assets/gallery/2026-04-24-photo-02.jpg",
+      "thumb": "assets/gallery/2026-04-24-photo-02-t.webp",
+      "w": 1200,
+      "h": 1600,
+      "city": "杭州市",
+      "date": "2026-04-24",
+      "hasGps": true,
+      "tags": [
+        "动物",
+        "自然"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "84mm",
+      "f": "f/2.8",
+      "shutter": "1/320",
+      "iso": "ISO 80",
+      "collection": "松鼠",
+      "source": "79db4ceb4569aab4ed1e13e94575a8061430637cb616ca751d431155b778e77c",
+      "title": "倒挂金钩"
+    },
+    {
+      "id": "2026-04-24-photo-03",
+      "src": "assets/gallery/2026-04-24-photo-03.jpg",
+      "thumb": "assets/gallery/2026-04-24-photo-03-t.webp",
+      "w": 1200,
+      "h": 1600,
+      "city": "杭州市",
+      "date": "2026-04-24",
+      "hasGps": true,
+      "tags": [
+        "动物",
+        "自然"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "95mm",
+      "f": "f/2.8",
+      "shutter": "1/400",
+      "iso": "ISO 80",
+      "collection": "松鼠",
+      "source": "e39a20779c7b93a1156723aa5072772f9394938c3d300b01ff3ee2c847260f4a",
+      "title": "人与自然"
+    },
+    {
+      "id": "2026-04-24-photo-04",
+      "src": "assets/gallery/2026-04-24-photo-04.jpg",
+      "thumb": "assets/gallery/2026-04-24-photo-04-t.webp",
+      "w": 1066,
+      "h": 1600,
+      "city": "杭州市",
+      "date": "2026-04-24",
+      "hasGps": true,
+      "tags": [
+        "风光",
+        "自然"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "105mm",
+      "f": "f/2.8",
+      "shutter": "1/2000",
+      "iso": "ISO 80",
+      "collection": "风景",
+      "source": "e41da2a730a8e4b30fcecd5635793b592bb2a4d12718a401ea19a88380c06548",
+      "title": "西湖边"
+    },
+    {
+      "id": "2026-04-24-photo-05",
+      "src": "assets/gallery/2026-04-24-photo-05.jpg",
+      "thumb": "assets/gallery/2026-04-24-photo-05-t.webp",
+      "w": 1202,
+      "h": 1600,
+      "city": "杭州市",
+      "date": "2026-04-24",
+      "hasGps": true,
+      "tags": [
+        "风光",
+        "自然"
+      ],
+      "camera": "Panasonic DC-S1RM2",
+      "lens": "28-105mm F2.8 DG DN | Art 024",
+      "focal": "105mm",
+      "f": "f/2.8",
+      "shutter": "1/1300",
+      "iso": "ISO 80",
+      "collection": "风景",
+      "source": "cb335bb18e838cc77e03018c43578856b60f07ddc26d1c889de33c6982af54c3",
+      "title": "雷峰塔与飞鸟"
+    },
+    {
       "id": "2025-10-24-photo-01",
       "src": "assets/gallery/2025-10-24-photo-01.jpg",
       "thumb": "assets/gallery/2025-10-24-photo-01-t.webp",
@@ -19,7 +201,8 @@
       "shutter": "1/80",
       "iso": "ISO 80",
       "collection": "四川省",
-      "source": "ef2d38ad8b99e7764b535358a322fd06ac6a0a53b4626807df58c1971058c3bd"
+      "source": "ef2d38ad8b99e7764b535358a322fd06ac6a0a53b4626807df58c1971058c3bd",
+      "title": "三星堆黄金面具"
     },
     {
       "id": "2025-10-23-photo-01",
@@ -40,7 +223,8 @@
       "shutter": "1/400",
       "iso": "ISO 80",
       "collection": "四川省",
-      "source": "9f7bbf7a597422fe0c86c2d5c86fe57070e1fe6b9349316d742e91a7008d0224"
+      "source": "9f7bbf7a597422fe0c86c2d5c86fe57070e1fe6b9349316d742e91a7008d0224",
+      "title": "黄龙五彩池"
     },
     {
       "id": "2025-10-22-photo-01",
@@ -61,9 +245,10 @@
       "shutter": "1s",
       "iso": "ISO 80",
       "collection": "四川省",
-      "source": "d1f292014a5d119b53e17c81ce51d5bcf10de1c3e98d041f61ea2aea7b0d5bfa"
+      "source": "d1f292014a5d119b53e17c81ce51d5bcf10de1c3e98d041f61ea2aea7b0d5bfa",
+      "title": "九寨沟瀑布"
     }
   ],
-  "generatedAt": "2026-11-25T13:21:59.475Z",
+  "generatedAt": "2026-11-25T13:36:27.943Z",
   "watermark": "www.zhengqiao.wang"
 }

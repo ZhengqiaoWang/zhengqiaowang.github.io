@@ -226,6 +226,7 @@ export function makeRecord(meta, opts = {}) {
     const city = opts.city || cityFromGps(lat, lon) || '待定';
 
     return {
+        title: (opts.title || '').trim() || null,
         city,
         date,
         hasGps: Boolean(opts.city) || cityFromGps(lat, lon) != null,

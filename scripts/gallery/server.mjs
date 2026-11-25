@@ -199,7 +199,9 @@ const routes = {
           const tmp = path.join(dir, name);
           await fs.writeFile(tmp, raw);
           const meta = (await readExif([tmp], {}))[0] || {};
-          const rec = makeRecord(meta, { tags, album, city: cityOverride, shift });
+          // 每张照片可以单独命名；没命名就别写空字符串，让前端退回「城市 · 日期」
+          const title = String(f.title || '').trim() || null;
+          const rec = makeRecord(meta, { tags, album, city: cityOverride, shift, title });
 
           const seq = maxSeq(photos, rec.date) + 1;
           const base = fileNameFor(rec, seq);

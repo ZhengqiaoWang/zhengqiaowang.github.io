@@ -38,6 +38,14 @@
   }
   .drop[data-over] { border-color: var(--accent); background: var(--accent-wash); }
   .drop__title { font-size: 16px; margin: 0 0 6px; }
+  .row__title {
+    width: 100%; margin-top: 4px; padding: 3px 7px;
+    border: 1px solid var(--line); border-radius: 2px;
+    background: var(--paper); color: var(--ink);
+    font: inherit; font-size: 13px;
+  }
+  .row__title::placeholder { color: var(--ink-soft); opacity: .7; }
+  .row__title:focus { outline: none; border-color: var(--accent); }
   .drop__sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; }
   .drop__acts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
@@ -201,7 +209,8 @@
   const TOKEN = '__TOKEN__';
   const $ = (s) => document.querySelector(s);
 
-  const state = { files: [], rows: [], meta: null, busy: false };
+  const state = {
+    titles: {}, files: [], rows: [], meta: null, busy: false };
 
   /* ---------- 小工具 ---------- */
 
@@ -483,6 +492,17 @@
       name.textContent = f.name;
       name.title = f.name;
 
+      // 作品名：每张单独填，会写进 photos.json 的 title
+      const title = document.createElement('input');
+      title.className = 'row__title';
+      title.type = 'text';
+      title.placeholder = '作品名（不填就用「城市 · 日期」）';
+      title.value = state.titles[f.name] || '';
+      title.addEventListener('input', () => {
+        state.titles[f.name] = title.value;
+      });
+      name.append(title);
+
       const when = document.createElement('div');
       when.className = 'row__exif';
       when.textContent = f.pending ? '未读取' : f.ok ? `${f.date} · ${f.city}` : '没有拍摄时间';
@@ -539,7 +559,10 @@
         const data = await readAsB64(src);
         const out = await api('/api/publish', {
           method: 'POST',
-          body: JSON.stringify({ files: [{ name: r.name, data }], tags, album, city, shift }),
+          body: JSON.stringify({
+            files: [{ name: r.name, data, title: state.titles[r.name] || '' }],
+            tags, album, city, shift,
+          }),
         });
         const one = out.results[0];
         const cell = document.querySelector(`[data-cell="${state.rows.indexOf(r)}"]`);
