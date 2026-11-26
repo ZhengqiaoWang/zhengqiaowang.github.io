@@ -17,3 +17,4 @@ desktop.ini
 # 临时调试用的目录（本地方稿、探针页、离线导出的 EXIF 缓存）
 .tmp-gallery-check/
 .tmp-probe/
+.tmp-testbackup/

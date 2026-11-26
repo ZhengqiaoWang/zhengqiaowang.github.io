@@ -12,6 +12,20 @@
 
 .page--gallery.wrap {
     max-width: var(--wrap-max);
+    /* clip 比 hidden 更彻底：不产生滚动容器，同时把 scrollWidth 也收回来，
+       否则筛选行的横向滚动区会把「页面能横向滚」这件事暴露出去 */
+    overflow-x: clip;
+    overflow-y: visible;
+    width: 100%;
+}
+
+/* ================= 页面根：横向绝不溢出 =================
+   筛选区行内有横向滚动条，个别元素会被内容顶宽；
+   在这里一次性兜住，免得手机上整页能左右拖。 */
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* ================= 页头 ================= */
@@ -40,6 +54,8 @@
     border-bottom: 1px solid var(--line);
     margin: 0 calc(-1 * var(--sp-5)) var(--sp-5);
     padding: 0 var(--sp-5);
+    max-width: 100vw;
+    overflow: hidden;
     transition: background-color .25s var(--ease);
 }
 
@@ -50,6 +66,8 @@
     min-height: 40px;
     padding: var(--sp-1) 0;
     min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .filters__row + .filters__row {
@@ -66,8 +84,9 @@
 }
 
 .rail {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
+    max-width: 100%;
     display: flex;
     align-items: center;
     gap: var(--sp-1);
@@ -184,9 +203,18 @@
 
 /* ================= 连续网格 ================= */
 .grid {
+    --gap: var(--sp-3);
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--sp-3);
+    /* 用 calc 显式算列宽：fr 在窄屏被内容撑开过，这里不给它机会 */
+    grid-template-columns: repeat(3, calc((100% - 2 * var(--gap)) / 3));
+    gap: var(--gap);
+    /* 手机上只要有一个子孙把宽度撑开，整页就会横向溢出；
+       把网格锁死在容器宽度内，配合 .shot 的 min-width:0 就不会跑出去 */
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    /* 不让内容撑出隐形轨道 */
+    grid-auto-columns: 0;
 }
 
 .grid > .empty {
@@ -195,13 +223,21 @@
 
 @media (min-width: 1280px) {
     .grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
+        grid-template-columns: repeat(4, calc((100% - 3 * var(--gap)) / 4));
+    /* 不让内容撑出隐形轨道 */
+    grid-auto-columns: 0;
+}
 }
 
 .shot {
     margin: 0;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
+    overflow: hidden;
+    /* grid item 默认 min-width:auto：卡片里 nowrap 的标题会把格子顶宽，
+       列宽跟着失控、整片网格超出视口，这里钉死内联尺寸计算 */
+    contain: inline-size;
 }
 
 .shot__btn {
@@ -252,6 +288,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
 }
 
 .shot__btn:hover .shot__badge,
@@ -273,18 +310,25 @@
     font-size: var(--fs-sm);
     line-height: 1.35;
     color: var(--ink);
+    /* 长作品名不能把格子顶宽：省略号截断 */
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    /* 长作品名用省略号，不许把格子撑开 */
+    min-width: 0;
+    display: block;
 }
 
 .shot__sub {
     display: flex;
     align-items: center;
     gap: var(--sp-2);
+    min-width: 0;
     font-family: var(--mono);
     font-size: var(--fs-meta);
     color: var(--ink-soft);
+    min-width: 0;
     min-width: 0;
 }
 
@@ -342,7 +386,9 @@
 
 /* ================= 灯箱 ================= */
 dialog.lightbox {
-    /* 显式居中：不管祖先有没有 transform，都不能让它跑到左上角 */
+    /* 显式居中：不管祖先有没有 transform，都不能让它跑到左上角。
+       inset:0 + margin:auto 是让 <dialog> 居中的唯一可靠写法，
+       光靠浏览器默认的居中在 main.wrap 里会被算歪。 */
     position: fixed;
     inset: 0;
     margin: auto;
@@ -514,10 +560,19 @@ dialog.lightbox::backdrop {
 
     .grid {
         gap: var(--sp-2);
-    }
+    /* 不让内容撑出隐形轨道 */
+    grid-auto-columns: 0;
+}
 
     .lightbox__grid {
         grid-template-columns: 1fr;
+    }
+
+    /* 窄屏：灯箱几乎占满屏幕，左右各留一点缝 */
+    dialog.lightbox {
+        width: calc(100vw - 2 * var(--sp-3));
+        max-width: none;
+        max-height: calc(100dvh - 2 * var(--sp-4));
     }
 
     .lightbox__stage img {
@@ -532,17 +587,30 @@ dialog.lightbox::backdrop {
 }
 
 @media (max-width: 620px) {
-    .shot__title {
-        font-size: var(--fs-meta);
+    /* 手机上去掉筛选区的负外边距：它是为了贴着正文边缘画的，
+       但在窄屏会和 padding 打架，让整页多出十几像素 */
+    .filters {
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
     }
 
+    .shot__title {
+        font-size: var(--fs-meta);
+    /* 长作品名用省略号，不许把格子撑开 */
+    min-width: 0;
+    display: block;
+}
+
     .shot__sub {
-        font-size: 11px;
-    }
+        font-size: var(--fs-meta);
+    min-width: 0;
+}
 
     .page--gallery .page-lede {
         font-size: var(--fs-sm);
         line-height: 1.7;
+        max-width: 100%;
     }
 
     .page--gallery .page-meta {
@@ -550,17 +618,18 @@ dialog.lightbox::backdrop {
     }
 
     .grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-    }
+        --gap: 6px;
+        grid-template-columns: repeat(2, calc((100% - var(--gap)) / 2));
+        gap: var(--gap);
+    /* 不让内容撑出隐形轨道 */
+    grid-auto-columns: 0;
+}
 
     .filters__label {
         width: 2.6em;
     }
 
     /* 手机上日期和城市还能挤下，就不藏了 */
-    }
-
     .shot__meta {
         gap: 0;
     }
